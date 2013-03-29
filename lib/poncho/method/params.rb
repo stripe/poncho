@@ -19,18 +19,15 @@ module Poncho
       def create_validations_for(param)
         attribute = param.name
 
-        validates_type_of attribute, :is => param.type
+        if param.options[:validate]
+          validates_with(param.options[:validate], :attributes => [param])
+        end
 
         if param.options[:required]
-          if param.type == Boolean
-            validates_inclusion_of attribute, :in => [true, false]
-          else
-            validates_presence_of(attribute)
-          end
+          validates_presence_of(attribute)
         end
 
         if param.options[:numeric]
-          number_options = param.type == Integer ? {:only_integer => true} : {}
           validates_numericality_of(attribute, number_options)
         end
 
