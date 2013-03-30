@@ -2,6 +2,8 @@ require 'poncho/version'
 
 module Poncho
   autoload :Error, 'poncho/error'
+  autoload :ResourceError, 'poncho/error'
+  autoload :UserError, 'poncho/error'
 
   autoload :Errors, 'poncho/errors'
   autoload :Filters, 'poncho/filters'

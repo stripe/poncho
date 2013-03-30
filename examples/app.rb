@@ -40,6 +40,14 @@ class ChargeCreateMethod < Poncho::JSONMethod
   end
 end
 
+class Card
+  attr_reader :number
+
+  def initialize(number)
+    @number = number
+  end
+end
+
 class Charge
   attr_reader :amount, :currency
 
@@ -47,11 +55,25 @@ class Charge
     @amount = amount
     @currency = currency
   end
+
+  def card
+    Card.new('4242 4242 4242 4242')
+  end
+end
+
+class CardResource < Poncho::Resource
+  param :number
+  param :expiry_month
+
+  def number
+    super[-4..-1]
+  end
 end
 
 class ChargeResource < Poncho::Resource
   param :amount, :type => :integer
   param :currency
+  param :card, :resource => CardResource
 
   def currency
     super || 'USD'

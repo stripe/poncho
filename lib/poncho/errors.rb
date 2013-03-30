@@ -51,7 +51,7 @@ module Poncho
     end
 
     def each
-      [full_messages.first]
+      [to_s]
     end
 
     # Returns the number of error messages.
@@ -72,6 +72,10 @@ module Poncho
     # Returns all message keys
     def keys
       messages.keys
+    end
+
+    def to_s
+      "Validation errors:\n " + full_messages.join(', ')
     end
 
     # Returns an array of error messages, with the attribute name included
@@ -132,7 +136,7 @@ module Poncho
 
     def full_message(attribute, message)
       return message if attribute == :base
-      "#{attribute} #{message}"
+      "#{attribute} #{message.join(', ')}"
     end
   end
 end

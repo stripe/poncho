@@ -5,17 +5,22 @@ module Poncho
     end
 
     module ClassMethods
-      VALIDATES_DEFAULT_KEYS = [:type, :required, :format, :in, :not_in, :length]
+      VALIDATES_DEFAULT_KEYS = [:resource, :type, :required, :format, :in, :not_in, :length]
 
       def params
         @params ||= {}
       end
 
       def param(name, options = {})
-        klass = param_for_type(options[:type] || :string)
+        type  =  options[:type]
+        type ||= options[:resource] ? :resource : :string
+
+        klass = param_for_type(type)
         param = klass.new(name, options)
         params[param.name] = param
+
         create_validations_for(param)
+
         param
       end
 
@@ -40,7 +45,7 @@ module Poncho
       def create_validations_for(param)
         attribute = param.name
 
-        unless param.options[:validate_type] == false
+        unless param.options[:validates] == false
           validates_param(attribute, :param => param)
         end
 

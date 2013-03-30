@@ -6,7 +6,6 @@ end
 
 module Poncho
   class JSONMethod < Method
-
     def body(value = nil)
       if value && !value.is_a?(String)
         content_type :json

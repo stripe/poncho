@@ -26,7 +26,7 @@ module Poncho
     end
 
     def param_before_type_cast(name)
-      record.send(name)
+      record.send(name) if record.respond_to?(name)
     end
 
     # Serialization
@@ -49,10 +49,10 @@ module Poncho
 
     # Validation
 
-    alias :read_attribute_for_validation :param
+    alias :read_attribute_for_validation :send
 
     def validate!
-      raise ResourceError, errors.first unless valid?
+      raise ResourceError, errors.to_s unless valid?
     end
 
     def method_missing(method_symbol, *arguments) #:nodoc:
