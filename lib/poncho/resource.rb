@@ -11,23 +11,17 @@ module Poncho
 
     # Params
 
-    def params
-      self.class.params
-    end
-
     def param(name)
       param = self.class.params[name]
       raise Error, "Undefined param #{name}" unless param
       param.convert(param_before_type_cast(name))
     end
 
-    def param?(name)
-      record.respond_to?(name) && !param_before_type_cast(name).nil?
-    end
-
     def param_before_type_cast(name)
       record.send(name) if record.respond_to?(name)
     end
+
+    alias :param? :param_before_type_cast
 
     # Serialization
 
@@ -41,7 +35,11 @@ module Poncho
 
     def as_json(options = nil)
       validate!
-      params.keys.inject({}) do |hash, key|
+      to_hash
+    end
+
+    def to_hash
+      self.class.params.keys.inject({}) do |hash, key|
         hash[key] = send(key)
         hash
       end
@@ -62,7 +60,7 @@ module Poncho
           param?($`)
         end
       else
-        if params.keys.include?(method_symbol)
+        if self.class.params.keys.include?(method_symbol)
           return param(method_symbol)
         end
 

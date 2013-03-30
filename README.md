@@ -1,6 +1,8 @@
 # Poncho
 
-TODO: Write a gem description
+Poncho is an API to build APIs or, in other words, a DSL to build REST interfaces.
+
+It'll validate input and output, coerce values and is easily extendable with custom data types.
 
 ## Installation
 
@@ -18,25 +20,29 @@ Or install it yourself as:
 
 ## Usage
 
-    get '/charges' do
-      ChargeListMethod.call(env)
+    class ChargeResource < Poncho::Resource
+      param :amount, :type => :integer
+      param :currency
+
+      def currency
+        super || 'USD'
+      end
     end
 
-    class ChargeListMethod < Poncho::Method
+    class ChargeCreateMethod < Poncho::Method
       param :amount, :type => :integer, :required => true
       param :currency, :in => ['USD', 'GBP']
 
       def invoke
-        charge = Charge.load(param(:id))
-        body ChargeResource.new(charge)
+        charge = Charge.new
+        charge.amount = param(:amount)
+        charge.currency = param(:currency)
+        charge.save
+
+        ChargeResource.new(charge)
       end
     end
 
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+    pst '/charges' do
+      ChargeCreateMethod.call(env)
+    end

@@ -50,6 +50,12 @@ module Poncho
       response.headers
     end
 
+    def params
+      request.params.inject({}) do |hash, (key, _)|
+        hash[key.to_sym] = param(key)
+      end
+    end
+
     def param(name)
       param = self.class.params[name]
       raise Error, "Undefined param #{name}" unless param
