@@ -35,7 +35,7 @@ module Poncho
       private
 
       def param_for_type(type)
-        return type if type.is_a?(Param)
+        return type if type.is_a?(Class)
         name = type.to_s.split('_').map {|w| w.capitalize }.join
         const_get("#{name}Param")
       rescue NameError

@@ -1,22 +1,6 @@
 require 'sinatra'
 require 'poncho'
 
-class ChargeListMethod < Poncho::JSONMethod
-  def invoke
-    {:hi => 'there'}
-  end
-end
-
-class ChargeCreateMethod < Poncho::JSONMethod
-  param :amount, :type => :integer, :required => true
-  param :currency, :in => ['GBP', 'USD']
-  param :card
-
-  def invoke
-    ChargeResource.new(Charge.new(5, 'GBP'))
-  end
-end
-
 class Card
   attr_reader :number
 
@@ -57,8 +41,31 @@ class ChargeResource < Poncho::Resource
   end
 end
 
-get '/charges' do
+class ChargeListMethod < Poncho::JSONMethod
+  param :page, :type => :integer
+
+  def invoke
+    [
+      ChargeResource.new(Charge.new(1000, 'USD')),
+      ChargeResource.new(Charge.new(50, 'USD'))
+    ]
+  end
+end
+
+class ChargeCreateMethod < Poncho::JSONMethod
+  param :amount, :type => :integer, :required => true
+  param :currency, :in => ['GBP', 'USD']
+  param :card
+
+  def invoke
+    ChargeResource.new(Charge.new(5, 'GBP'))
+  end
+end
+
+post '/charges' do
   ChargeCreateMethod.call(env)
 end
 
-# post '/charges', &ChargeCreateMethod
+get '/charges' do
+  ChargeListMethod.call(env)
+end

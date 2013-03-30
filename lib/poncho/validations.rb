@@ -151,7 +151,7 @@ module Poncho
       private
 
       def validator_for_kind(kind)
-        return kind if kind.is_a?(Validator)
+        return type if type.is_a?(Class)
         name = kind.to_s.split('_').map {|w| w.capitalize }.join
         const_get("#{name}Validator")
       rescue NameError
