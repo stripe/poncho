@@ -40,7 +40,8 @@ module Poncho
       #   proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
-      def validates_presence_of(*attr_names, options = {})
+      def validates_presence_of(*attr_names)
+        options = attr_names.last.is_a?(::Hash) ? attr_names.pop : {}
         validates_with PresenceValidator, options.merge(:attributes => attr_names)
       end
     end

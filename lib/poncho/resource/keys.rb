@@ -1,6 +1,8 @@
 module Poncho
-  module Resource
+  class Resource
     module Keys
+      VALIDATES_DEFAULT_KEYS = [:type, :required, :format, :in, :not_in, :length]
+
       def keys
         @keys ||= {}
       end
@@ -16,24 +18,22 @@ module Poncho
       protected
 
       def create_validations_for(key, options = {})
-        if key.options[:required]
-          validates_presence_of(key)
-        end
+        attribute = key.name
 
-        if key.options[:numeric]
-          validates_numericality_of(key, number_options)
+        if key.options[:required]
+          validates_presence_of(attribute)
         end
 
         if key.options[:format]
-          validates_format_of(key, :with => key.options[:format])
+          validates_format_of(attribute, :with => key.options[:format])
         end
 
         if key.options[:in]
-          validates_inclusion_of(key, :in => key.options[:in])
+          validates_inclusion_of(attribute, :in => key.options[:in])
         end
 
         if key.options[:not_in]
-          validates_exclusion_of(key, :in => key.options[:not_in])
+          validates_exclusion_of(attribute, :in => key.options[:not_in])
         end
 
         if key.options[:length]
@@ -45,8 +45,11 @@ module Poncho
           when Hash
             key.options[:length]
           end
-          validates_length_of(key, length_options)
+          validates_length_of(attribute, length_options)
         end
+
+        validators = key.options.reject {|key, _| VALIDATES_DEFAULT_KEYS.include?(key) }
+        validates(attribute, validators) if validators.any?
       end
 
       def create_accessors_for(key)

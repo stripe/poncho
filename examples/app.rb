@@ -1,28 +1,49 @@
 require 'sinatra'
 require 'poncho'
 
-class ChargeResource < Poncho::Resource
-  key :name
-  key :currency, :validate => :currency
+module Poncho
+  module Validations
+    class CardHashValidator < EachValidator
+      def validate_each(record, attribute, value)
+        if !value.is_a?(Hash)
+          record.errors.add(attribute, :invalid_card, options.merge(:value => value))
+        end
+      end
+    end
+
+    class CurrencyValidator < EachValidator
+      def validate_each(record, attribute, value)
+        if value && !['USD', 'GBP'].include?(value)
+          record.errors.add(attribute, :invalid_currency, options.merge(:value => value))
+        end
+      end
+    end
+  end
 end
 
-class ChargeListMethod < Poncho::Method
-  def invoke
+class ChargeListMethod < Poncho::JSONMethod
+  param :page, :type => :integer, :required => true
+  param :currency, :currency => true
 
+  def invoke
+    {:hi => 'there'}
   end
 end
 
 class ChargeCreateMethod < Poncho::Method
-  param :amount, :required => true, :numeric => true
-  param :currency, :validate => :currency
-  param :card, :validate => :card_hash
+  param :amount, :type => :integer, :required => true
+  param :currency, :currency => true
+  param :card
+
+  validates :card, CardHashValidator
 
   def invoke
-
-
-    ChargeResource.new(record)
+    'ok'
   end
 end
 
-get '/charges', ChargeListMethod
-post '/charges', ChargeCreateMethod
+get '/charges' do
+  ChargeListMethod.call(env)
+end
+
+# post '/charges', &ChargeCreateMethod

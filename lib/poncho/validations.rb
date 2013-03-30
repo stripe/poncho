@@ -1,5 +1,4 @@
 module Poncho
-
   # == Active Model Validations
   #
   # Provides a full validation framework to your objects.
@@ -34,14 +33,17 @@ module Poncho
   #
   module Validations
     def self.included(base)
-      class_eval do
-        extend  ClassMethods
-        extend  HelperMethods
-        include HelperMethods
-      end
+      base.extend ClassMethods
+      base.extend HelperMethods
+    end
+
+    module HelperMethods
     end
 
     module ClassMethods
+
+      VALIDATES_DEFAULT_KEYS = [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
+
       # Validates each attribute against a block.
       #
       #   class Person
@@ -67,7 +69,8 @@ module Poncho
       #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
-      def validates_each(*attr_names, options = {}, &block)
+      def validates_each(*attr_names, &block)
+        options = attr_names.last.is_a?(::Hash) ? attr_names.pop : {}
         validates_with BlockValidator, options.merge(:attributes => attr_names.flatten), &block
       end
 
@@ -111,8 +114,11 @@ module Poncho
       #     end
       #   end
       #
-      def validate(&block)
-        @validators << block
+      def validate(proc = nil, &block)
+        proc ||= block
+        proc = method(proc) if proc.is_a?(Symbol)
+
+        validators << proc
       end
 
       # List all validators that are being used to validate the model using
@@ -121,11 +127,35 @@ module Poncho
         @validators ||= []
       end
 
-      def validates_with(*args, options = {}, &block)
+      def validates_with(*args, &block)
+        options = args.last.is_a?(::Hash) ? args.pop : {}
+
         args.each do |klass|
           validator = klass.new(options, &block)
-          validate(validator, options)
+          validate(validator)
         end
+      end
+
+      def validates(*attributes)
+        options = attributes.last.is_a?(::Hash) ? attributes.pop : {}
+
+        validations = options.reject {|key, value| VALIDATES_DEFAULT_KEYS.include?(key) || !value }
+        options     = options.merge(:attributes => attributes)
+
+        validations.each do |key, validator_options|
+          validator_options = {} if validator_options == true
+          validates_with(validator_for_kind(key), validator_options.merge(:attributes => attributes))
+        end
+      end
+
+      private
+
+      def validator_for_kind(kind)
+        return kind if kind.is_a?(Validator)
+        name = kind.to_s.split('_').map {|w| w.capitalize }.join
+        const_get("#{name}Validator")
+      rescue NameError
+        raise ArgumentError, "Unknown validator: #{kind}"
       end
     end
 
@@ -141,7 +171,7 @@ module Poncho
       errors.clear
 
       self.class.validators.each do |validator|
-        validator.call(self)
+        validator.validate(self)
       end
 
       errors.empty?
@@ -155,4 +185,9 @@ module Poncho
 
     alias :read_attribute_for_validation :send
   end
+end
+
+Dir[File.dirname(__FILE__) + "/validations/*.rb"].sort.each do |path|
+  filename = File.basename(path)
+  require "poncho/validations/#{filename}"
 end

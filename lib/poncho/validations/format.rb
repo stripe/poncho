@@ -28,7 +28,7 @@ module Poncho
       end
 
       def record_error(record, attribute, name, value)
-        record.errors.add(attribute, :invalid, options.merge(:value => value))
+        record.errors.add(attribute, options.merge(:value => value))
       end
 
       def check_options_validity(options, name)
@@ -96,7 +96,8 @@ module Poncho
       #   proc or string should return or evaluate to a true or false value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
-      def validates_format_of(*attr_names, options = {})
+      def validates_format_of(*attr_names)
+        options = attr_names.last.is_a?(::Hash) ? attr_names.pop : {}
         validates_with FormatValidator, options.merge(:attributes => attr_names)
       end
     end

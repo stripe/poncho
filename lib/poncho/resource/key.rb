@@ -1,13 +1,15 @@
 module Poncho
-  module Resource
+  class Resource
     class Key
+      attr_reader :name, :options
+
       def initialize(name, options = {})
         @name    = name
         @options = options
       end
 
       def type
-        @options[:type] || :string
+        options[:type] || :string
       end
 
       def convert(value)

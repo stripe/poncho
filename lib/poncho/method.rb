@@ -1,8 +1,13 @@
+require 'poncho/method/validations'
+
 module Poncho
   class Method
-    include Validations
-    include Filters
-    extend Params
+    autoload :Param, 'poncho/method/param'
+    autoload :Params, 'poncho/method/params'
+
+    include Poncho::Validations
+    include Poncho::Filters
+    include Params
 
     def self.call(env)
       self.new.call(env)
@@ -22,16 +27,14 @@ module Poncho
       add_filter(:after, options, &block)
     end
 
-    def self.after_validation(options = {}, &block)
-      add_filter(:after_validation, options, &block)
-    end
+    validates_extra_params
 
     attr_reader :env, :request, :response
 
     def call(env)
       @env      = env
-      @request  = Rack::Request.new(env)
-      @response = Rack::Response.new
+      @request  = Request.new(env)
+      @response = Response.new
 
       wrap {
         validate!
@@ -57,7 +60,15 @@ module Poncho
     def param(name)
       param = self.class.params[name]
       raise Error, "Undefined param #{name}" unless param
-      param.convert(request.params[name])
+      param.convert(param_before_type_cast(name))
+    end
+
+    def param?(name)
+      request.params.has_key?(name.to_s)
+    end
+
+    def param_before_type_cast(name)
+      request.params[name.to_s]
     end
 
     def status(value=nil)
@@ -66,7 +77,7 @@ module Poncho
     end
 
     def redirect(uri, *args)
-      if env['HTTP_VERSION'] == 'HTTP/1.1' and env["REQUEST_METHOD"] != 'GET'
+      if env['HTTP_VERSION'] == 'HTTP/1.1' and env['REQUEST_METHOD'] != 'GET'
         status 303
       else
         status 302
@@ -94,6 +105,16 @@ module Poncho
       end
     end
 
+    def json(value, code = nil)
+      content_type :json
+      status code if code
+      value.to_json
+    end
+
+    def json?
+      request.accept?(mime_type(:json))
+    end
+
     # Errors
 
     def halt(*response)
@@ -102,8 +123,8 @@ module Poncho
     end
 
     def error(code, body=nil)
-      code, body    = 500, code.to_str if code.respond_to? :to_str
-      response.body = body unless body.nil?
+      code, body = 500, code.to_str if code.respond_to? :to_str
+      self.body(body) unless body.nil?
       halt code
     end
 
@@ -116,24 +137,32 @@ module Poncho
     def invoke
     end
 
-    protected
-
     # Validation
 
     alias :read_attribute_for_validation :param
 
+    def validate_param(name)
+      return unless param?(name)
+      param = self.class.params[name]
+      raise Error, "Undefined param #{name}" unless param
+      param.validate(self)
+    end
+
+    protected
+
     def validate!
       run_filters :before_validation
-      halt(errors.first, 402) unless valid?
-      run_filters :after_validation
+      error(406, errors) unless valid?
     end
 
     # Calling
 
     def dispatch!
-      run_filters(:before)
-      invoke
-      run_filters(:after)
+      run_filters :before
+      result = invoke
+      run_filters :after
+
+      throw :halt, result
     end
 
     def wrap

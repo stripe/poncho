@@ -1,8 +1,12 @@
 module Poncho
-  module Method
+  class Method
     module Params
       class StringParam < Param
-        type :string
+        def validate_each(record, attribute, value)
+          unless value.is_a?(String)
+            record.errors.add(attribute, :invalid_string, options.merge(:value => value))
+          end
+        end
 
         def convert(value)
           value && value.to_s

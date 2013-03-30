@@ -87,31 +87,29 @@ module Poncho
   # class level <tt>validates_with</tt> method.
   #
   class Validator
-    attr_reader :options
-
-    # Returns the kind of the validator. Examples:
-    #
-    #   PresenceValidator.kind   # => :presence
-    #   UniquenessValidator.kind # => :uniqueness
-    #
     def self.kind
-      @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
+      @kind ||= begin
+        full_name = name.split('::').last
+        full_name = full_name.gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
+        full_name.sub(/_validator$/, '').to_sym
+      end
     end
+
+    attr_reader :options
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options)
       @options = options.freeze
     end
 
-    # Return the kind for this validator.
-    def kind
-      self.class.kind
-    end
-
     # Override this method in subclasses with validation logic, adding errors
     # to the records +errors+ array where necessary.
     def validate(record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
+    end
+
+    def kind
+      self.class.kind
     end
   end
 
@@ -127,7 +125,7 @@ module Poncho
     # +options+ reader, however the <tt>:attributes</tt> option will be removed
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
-      @attributes = Array.wrap(options.delete(:attributes))
+      @attributes = Array(options.delete(:attributes))
       raise ":attributes cannot be blank" if @attributes.empty?
       super
       check_validity!

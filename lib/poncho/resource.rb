@@ -1,6 +1,9 @@
 module Poncho
   class Resource
-    include Validations
+    autoload :Key, 'poncho/resource/key'
+    autoload :Keys, 'poncho/resource/keys'
+
+    include Poncho::Validations
     extend Keys
 
     attr_reader :record
