@@ -82,6 +82,8 @@ module Poncho
       end
     end
   end
+
+  alias :param_for_validation? :respond_to?
 end
 
 require 'poncho/validations'

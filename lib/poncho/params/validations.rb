@@ -8,7 +8,9 @@ module Poncho
       end
 
       def validate_each(record, attribute, value)
-        options[:param].validate(record)
+        if record.param_for_validation?(attribute)
+          options[:param].validate_each(record, attribute, value)
+        end
       end
     end
 

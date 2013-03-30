@@ -1,5 +1,5 @@
 module Poncho
-  # == Active Model Validations
+  # == Poncho Validations
   #
   # Provides a full validation framework to your objects.
   #
@@ -192,7 +192,7 @@ module Poncho
   end
 end
 
-Dir[File.dirname(__FILE__) + "/validations/*.rb"].sort.each do |path|
+Dir[File.dirname(__FILE__) + '/validations/*.rb'].sort.each do |path|
   filename = File.basename(path)
   require "poncho/validations/#{filename}"
 end

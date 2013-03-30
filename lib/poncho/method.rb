@@ -139,6 +139,7 @@ module Poncho
     # Validation
 
     alias :read_attribute_for_validation :param_before_type_cast
+    alias :param_for_validation? :param?
 
     protected
 

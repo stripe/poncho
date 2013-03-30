@@ -16,9 +16,9 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:amount => nil))
-    assert_equal 200, status
+    assert_equal 406, status
 
-    status, headers, body = method.call(env(:amount => 1))
+    status, headers, body = method.call(env(:amount => '1'))
     assert_equal 200, status
 
     status, headers, body = method.call(env(:amount => 'blah'))
@@ -31,7 +31,7 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:amount => nil))
-    assert_equal 200, status
+    assert_equal 406, status
 
     status, headers, body = method.call(env(:amount => 'blah'))
     assert_equal 200, status

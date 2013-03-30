@@ -19,11 +19,6 @@ module Poncho
       self.class.type
     end
 
-    def validate(record)
-      value = record.param_before_type_cast(name)
-      validate_each(record, name, value) unless value.nil?
-    end
-
     def validate_each(record, attribute, value)
     end
 

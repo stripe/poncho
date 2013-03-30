@@ -58,7 +58,8 @@ class ChargeCreateMethod < Poncho::JSONMethod
   param :card
 
   def invoke
-    ChargeResource.new(Charge.new(5, 'GBP'))
+    charge = Charge.new(param(:amount), param(:currency))
+    ChargeResource.new(charge)
   end
 end
 

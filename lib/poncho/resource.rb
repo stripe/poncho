@@ -21,7 +21,7 @@ module Poncho
       record.send(name) if record.respond_to?(name)
     end
 
-    alias :param? :param_before_type_cast
+    alias_method :param?, :respond_to?
 
     # Serialization
 
@@ -47,25 +47,28 @@ module Poncho
 
     # Validation
 
-    alias :read_attribute_for_validation :send
+    # We want to validate an attribute if its
+    # uncoerced value is not nil
+    def param_for_validation?(name)
+      if respond_to?(name)
+        !send(name).nil?
+      else
+        !param_before_type_cast(name).nil?
+      end
+    end
+
+    alias_method :read_attribute_for_validation, :send
 
     def validate!
       raise ResourceError, errors.to_s unless valid?
     end
 
     def method_missing(method_symbol, *arguments) #:nodoc:
-      if method_symbol.to_s =~ /(=|\?)$/
-        case $1
-        when "?"
-          param?($`)
-        end
-      else
-        if self.class.params.keys.include?(method_symbol)
-          return param(method_symbol)
-        end
-
-        super
+      if self.class.params.keys.include?(method_symbol)
+        return param(method_symbol)
       end
+
+      super
     end
   end
 end

@@ -117,7 +117,7 @@ module Poncho
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
   # record, attribute and value.
   #
-  # All Active Model validations are built on top of this validator.
+  # All Poncho validations are built on top of this validator.
   class EachValidator < Validator
     attr_reader :attributes
 
@@ -126,7 +126,7 @@ module Poncho
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
-      raise ":attributes cannot be blank" if @attributes.empty?
+      raise ':attributes cannot be blank' if @attributes.empty?
       super
       check_validity!
     end
@@ -145,7 +145,7 @@ module Poncho
     # Override this method in subclasses with the validation logic, adding
     # errors to the records +errors+ array where necessary.
     def validate_each(record, attribute, value)
-      raise NotImplementedError, "Subclasses must implement a validate_each(record, attribute, value) method"
+      raise NotImplementedError, 'Subclasses must implement a validate_each(record, attribute, value) method'
     end
 
     # Hook method that gets called by the initializer allowing verification
