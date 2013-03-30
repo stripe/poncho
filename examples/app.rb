@@ -30,20 +30,36 @@ class ChargeListMethod < Poncho::JSONMethod
   end
 end
 
-class ChargeCreateMethod < Poncho::Method
+class ChargeCreateMethod < Poncho::JSONMethod
   param :amount, :type => :integer, :required => true
   param :currency, :currency => true
   param :card
 
-  validates :card, CardHashValidator
-
   def invoke
-    'ok'
+    ChargeResource.new(Charge.new(5, 'GBP'))
+  end
+end
+
+class Charge
+  attr_reader :amount, :currency
+
+  def initialize(amount, currency)
+    @amount = amount
+    @currency = currency
+  end
+end
+
+class ChargeResource < Poncho::Resource
+  param :amount, :type => :integer
+  param :currency
+
+  def currency
+    super || 'USD'
   end
 end
 
 get '/charges' do
-  ChargeListMethod.call(env)
+  ChargeCreateMethod.call(env)
 end
 
 # post '/charges', &ChargeCreateMethod

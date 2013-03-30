@@ -1,10 +1,7 @@
 module Poncho
   class Resource
-    autoload :Key, 'poncho/resource/key'
-    autoload :Keys, 'poncho/resource/keys'
-
-    include Poncho::Validations
-    extend Keys
+    include Params
+    include Validations
 
     attr_reader :record
 
@@ -12,36 +9,64 @@ module Poncho
       @record = record
     end
 
+    # Params
+
+    def params
+      self.class.params
+    end
+
+    def param(name)
+      param = self.class.params[name]
+      raise Error, "Undefined param #{name}" unless param
+      param.convert(param_before_type_cast(name))
+    end
+
+    def param?(name)
+      record.respond_to?(name) && !param_before_type_cast(name).nil?
+    end
+
+    def param_before_type_cast(name)
+      record.send(name)
+    end
+
+    # Serialization
+
     def each
       [to_json]
     end
 
-    def keys
-      self.class.keys
+    def to_json(options = nil)
+      as_json.to_json
     end
 
-    def read_key(name)
-      unless self.keys.has_key?(name)
-        raise ResourceError, "Unknown key: #{name}"
+    def as_json(options = nil)
+      validate!
+      params.keys.inject({}) do |hash, key|
+        hash[key] = send(key)
+        hash
       end
-
-      value = record.send(name)
-      self.keys[name].convert(value)
     end
 
-    def read_key_before_type_cast(name)
-      record.send(name)
-    end
+    # Validation
+
+    alias :read_attribute_for_validation :param
 
     def validate!
       raise ResourceError, errors.first unless valid?
     end
 
-    def as_json(options = nil)
-      validate!
-      keys.keys.map({}) do |hash, key|
-        hash[key] = send(key)
-        hash
+    def method_missing(method_symbol, *arguments) #:nodoc:
+      if method_symbol.to_s =~ /(=|\?)$/
+        case $1
+        when "?"
+          param?($`)
+        end
+      else
+        if params.keys.include?(method_symbol)
+          return param(method_symbol)
+        end
+
+        super
       end
     end
   end

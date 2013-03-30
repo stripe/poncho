@@ -1,7 +1,5 @@
 module Poncho
   class Errors
-    include Enumerable
-
     attr_reader :messages
 
     def initialize(base)
@@ -52,24 +50,8 @@ module Poncho
       self[attribute] << error
     end
 
-    # Iterates through each error key, value pair in the error messages hash.
-    # Yields the attribute and the error for that attribute. If the attribute
-    # has more than one error message, yields once for each error message.
-    #
-    #   p.errors.add(:name, "can't be blank")
-    #   p.errors.each do |attribute, errors_array|
-    #     # Will yield :name and "can't be blank"
-    #   end
-    #
-    #   p.errors.add(:name, "must be specified")
-    #   p.errors.each do |attribute, errors_array|
-    #     # Will yield :name and "can't be blank"
-    #     # then yield :name and "must be specified"
-    #   end
     def each
-      messages.each_key do |attribute|
-        self[attribute].each { |error| yield attribute, error }
-      end
+      [full_messages.first]
     end
 
     # Returns the number of error messages.
@@ -113,12 +95,23 @@ module Poncho
     # Returns true if no errors are found, false otherwise.
     # If the error message is a string it can be empty.
     def empty?
-      all? { |k, v| v && v == "" && !v.is_a?(String) }
+      messages.all? { |k, v| v && v == "" && !v.is_a?(String) }
     end
     alias_method :blank?, :empty?
 
+    # Return the first error we get
     def as_json(options=nil)
-      {:errors => to_hash}
+      return {} if messages.empty?
+      attribute, types = messages.first
+      type             = types.first
+
+      {
+        :error => {
+          :param => attribute,
+          :type  => type,
+          :message => nil
+        }
+      }
     end
 
     def to_json(options=nil)
@@ -134,7 +127,7 @@ module Poncho
     end
 
     def full_messages
-      map { |attribute, message| full_message(attribute, message) }
+      messages.map { |attribute, message| full_message(attribute, message) }
     end
 
     def full_message(attribute, message)

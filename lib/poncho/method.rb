@@ -1,12 +1,7 @@
-require 'poncho/method/validations'
-
 module Poncho
   class Method
-    autoload :Param, 'poncho/method/param'
-    autoload :Params, 'poncho/method/params'
-
-    include Poncho::Validations
-    include Poncho::Filters
+    include Validations
+    include Filters
     include Params
 
     def self.call(env)
@@ -26,8 +21,6 @@ module Poncho
     def self.after(options = {}, &block)
       add_filter(:after, options, &block)
     end
-
-    validates_extra_params
 
     attr_reader :env, :request, :response
 
@@ -141,18 +134,21 @@ module Poncho
 
     alias :read_attribute_for_validation :param
 
-    def validate_param(name)
-      return unless param?(name)
-      param = self.class.params[name]
-      raise Error, "Undefined param #{name}" unless param
-      param.validate(self)
-    end
-
     protected
 
     def validate!
       run_filters :before_validation
-      error(406, errors) unless valid?
+      run_extra_param_validations!
+      run_validations!
+      error(406, errors) unless errors.empty?
+    end
+
+    def run_extra_param_validations!
+      request.params.keys.each do |param|
+        unless self.class.params.has_key?(param.to_sym)
+          errors.add(param, :invalid_param)
+        end
+      end
     end
 
     # Calling

@@ -6,14 +6,12 @@ end
 
 module Poncho
   class JSONMethod < Method
-    def dispatch!
-      content_type :json
-      super
-    end
 
     def body(value = nil)
-      if value
-        value = value.to_json unless value.is_a?(String)
+      if value && !value.is_a?(String)
+        content_type :json
+        response.body = value.to_json
+      elsif value
         response.body = value
       else
         response.body

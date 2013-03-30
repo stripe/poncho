@@ -132,7 +132,7 @@ module Poncho
 
         args.each do |klass|
           validator = klass.new(options, &block)
-          validate(validator)
+          validate(validator.method(:validate))
         end
       end
 
@@ -169,12 +169,7 @@ module Poncho
     # to test against.
     def valid?(context = nil)
       errors.clear
-
-      self.class.validators.each do |validator|
-        validator.validate(self)
-      end
-
-      errors.empty?
+      run_validations!
     end
 
     # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,
@@ -184,6 +179,16 @@ module Poncho
     end
 
     alias :read_attribute_for_validation :send
+
+    protected
+
+    def run_validations!
+      self.class.validators.each do |validator|
+        validator.call(self)
+      end
+
+      errors.empty?
+    end
   end
 end
 
