@@ -23,7 +23,8 @@ Or install it yourself as:
     end
 
     class ChargeListMethod < Poncho::Method
-      param :blah, :string, :required => true
+      param :amount, :type => :integer, :required => true
+      param :currency, :in => ['USD', 'GBP']
 
       def invoke
         charge = Charge.load(param(:id))
