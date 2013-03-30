@@ -6,7 +6,7 @@ module Poncho
   # A minimal implementation could be:
   #
   #   class Person
-  #     include ActiveModel::Validations
+  #     include Poncho::Validations
   #
   #     attr_accessor :first_name, :last_name
   #
@@ -27,8 +27,8 @@ module Poncho
   #   person.invalid?                 # => true
   #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
   #
-  # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
-  # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
+  # Note that <tt>Poncho::Validations</tt> automatically adds an +errors+ method
+  # to your instances initialized with a new <tt>Poncho::Errors</tt> object, so
   # there is no need for you to do this manually.
   #
   module Validations
@@ -47,7 +47,7 @@ module Poncho
       # Validates each attribute against a block.
       #
       #   class Person
-      #     include ActiveModel::Validations
+      #     include Poncho::Validations
       #
       #     attr_accessor :first_name, :last_name
       #
@@ -81,7 +81,7 @@ module Poncho
       # This can be done with a symbol pointing to a method:
       #
       #   class Comment
-      #     include ActiveModel::Validations
+      #     include Poncho::Validations
       #
       #     validate :must_be_friends
       #
@@ -93,7 +93,7 @@ module Poncho
       # With a block which is passed with the current record to be validated:
       #
       #   class Comment
-      #     include ActiveModel::Validations
+      #     include Poncho::Validations
       #
       #     validate do |comment|
       #       comment.must_be_friends
@@ -107,7 +107,7 @@ module Poncho
       # Or with a block where self points to the current record to be validated:
       #
       #   class Comment
-      #     include ActiveModel::Validations
+      #     include Poncho::Validations
       #
       #     validate do
       #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)

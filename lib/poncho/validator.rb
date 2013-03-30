@@ -1,11 +1,11 @@
 module Poncho
   #
   #   class Person
-  #     include ActiveModel::Validations
+  #     include Poncho::Validations
   #     validates_with MyValidator
   #   end
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MyValidator < Poncho::Validator
   #     def validate(record)
   #       if some_complex_logic
   #         record.errors[:base] = "This record is invalid"
@@ -18,15 +18,15 @@ module Poncho
   #       end
   #   end
   #
-  # Any class that inherits from ActiveModel::Validator must implement a method
+  # Any class that inherits from Poncho::Validator must implement a method
   # called <tt>validate</tt> which accepts a <tt>record</tt>.
   #
   #   class Person
-  #     include ActiveModel::Validations
+  #     include Poncho::Validations
   #     validates_with MyValidator
   #   end
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MyValidator < Poncho::Validator
   #     def validate(record)
   #       record # => The person instance being validated
   #       options # => Any non-standard options passed to validates_with
@@ -36,7 +36,7 @@ module Poncho
   # To cause a validation error, you must add to the <tt>record</tt>'s errors directly
   # from within the validators message
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MyValidator < Poncho::Validator
   #     def validate(record)
   #       record.errors.add :base, "This is some custom error message"
   #       record.errors.add :first_name, "This is some complex validation"
@@ -46,7 +46,7 @@ module Poncho
   #
   # To add behavior to the initialize method, use the following signature:
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MyValidator < Poncho::Validator
   #     def initialize(options)
   #       super
   #       @my_custom_field = options[:field_name] || :first_name
@@ -54,19 +54,19 @@ module Poncho
   #   end
   #
   # The easiest way to add custom validators for validating individual attributes
-  # is with the convenient <tt>ActiveModel::EachValidator</tt>. For example:
+  # is with the convenient <tt>Poncho::EachValidator</tt>. For example:
   #
-  #   class TitleValidator < ActiveModel::EachValidator
+  #   class TitleValidator < Poncho::EachValidator
   #     def validate_each(record, attribute, value)
   #       record.errors.add attribute, 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
   #     end
   #   end
   #
   # This can now be used in combination with the +validates+ method
-  # (see <tt>ActiveModel::Validations::ClassMethods.validates</tt> for more on this)
+  # (see <tt>Poncho::Validations::ClassMethods.validates</tt> for more on this)
   #
   #   class Person
-  #     include ActiveModel::Validations
+  #     include Poncho::Validations
   #     attr_accessor :title
   #
   #     validates :title, :presence => true
@@ -77,7 +77,7 @@ module Poncho
   # useful when there are prerequisites such as an +attr_accessor+ being present
   # for example:
   #
-  #   class MyValidator < ActiveModel::Validator
+  #   class MyValidator < Poncho::Validator
   #     def setup(klass)
   #       klass.send :attr_accessor, :custom_attribute
   #     end
