@@ -29,7 +29,7 @@ Or install it yourself as:
       end
     end
 
-    class ChargeCreateMethod < Poncho::Method
+    class ChargeCreateMethod < Poncho::JSONMethod
       param :amount, :type => :integer, :required => true
       param :currency, :in => ['USD', 'GBP']
 
