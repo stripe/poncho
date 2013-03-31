@@ -41,7 +41,12 @@ module Poncho
       end
 
       def run_filters(type, *args)
-        filters_for(type).each {|f| f.call(*args) }
+        base = self
+
+        while base.respond_to?(:filters_for)
+          base.filters_for(type).each {|f| f.call(*args) }
+          base = base.superclass
+        end
       end
     end
   end

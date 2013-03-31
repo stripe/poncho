@@ -43,6 +43,4 @@ Or install it yourself as:
       end
     end
 
-    pst '/charges' do
-      ChargeCreateMethod.call(env)
-    end
+    post '/charges', &ChargeCreateMethod

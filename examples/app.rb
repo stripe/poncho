@@ -63,10 +63,5 @@ class ChargeCreateMethod < Poncho::JSONMethod
   end
 end
 
-post '/charges' do
-  ChargeCreateMethod.call(env)
-end
-
-get '/charges' do
-  ChargeListMethod.call(env)
-end
+post '/charges', &ChargeCreateMethod
+get '/charges', &ChargeListMethod

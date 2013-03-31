@@ -8,6 +8,14 @@ module Poncho
       self.new.call(env)
     end
 
+    # Some magic so you can do one-line
+    # Sinatra routes. For example:
+    #   get '/charges', &ChargesListMethod
+    def self.to_proc
+      this = self
+      Proc.new { this.call(env) }
+    end
+
     # Filters
 
     def self.before(options = {}, &block)
@@ -18,8 +26,17 @@ module Poncho
       add_filter(:before_validation, options, &block)
     end
 
-    def self.after(options = {}, &block)
-      add_filter(:after, options, &block)
+    def self.errors
+      @errors ||= {}
+    end
+
+    def self.error(type = :base, &block)
+      errors[type] = block
+    end
+
+    def self.helpers(*extensions, &block)
+      class_eval(&block)   if block_given?
+      include(*extensions) if extensions.any?
     end
 
     attr_reader :env, :request, :response
@@ -53,6 +70,7 @@ module Poncho
     def params
       request.params.inject({}) do |hash, (key, _)|
         hash[key.to_sym] = param(key)
+        hash
       end
     end
 
@@ -114,6 +132,33 @@ module Poncho
       request.accept?(mime_type(:json))
     end
 
+    # Statuses
+
+    # whether or not the status is set to 2xx
+    def success?
+      status.between? 200, 299
+    end
+
+    # whether or not the status is set to 3xx
+    def redirect?
+      status.between? 300, 399
+    end
+
+    # whether or not the status is set to 4xx
+    def client_error?
+      status.between? 400, 499
+    end
+
+    # whether or not the status is set to 5xx
+    def server_error?
+      status.between? 500, 599
+    end
+
+    # whether or not the status is set to 404
+    def not_found?
+      status == 404
+    end
+
     # Errors
 
     def halt(*response)
@@ -147,7 +192,9 @@ module Poncho
       run_filters :before_validation
       run_extra_param_validations!
       run_validations!
-      error(406, errors) unless errors.empty?
+      raise ValidationError.new(errors) unless errors.empty?
+    ensure
+      run_filters :after_validation
     end
 
     def run_extra_param_validations!
@@ -162,10 +209,52 @@ module Poncho
 
     def dispatch!
       run_filters :before
-      result = invoke
+      halt invoke
+    ensure
       run_filters :after
+    end
 
-      throw :halt, result
+    def error_block(key)
+      base = self.class
+
+      while base.respond_to?(:errors)
+        block = base.errors[key]
+        return block if block
+        base = base.superclass
+      end
+
+      return false unless key.respond_to?(:superclass) && key.superclass < Exception
+      error_block(key.superclass)
+    end
+
+    def handle_exception!(error)
+      env['poncho.error'] = error
+
+      status error.respond_to?(:code) ? Integer(error.code) : 500
+
+      if server_error?
+        request.logger.error(
+          "#{error.class}: #{error}\n\t" +
+          error.backtrace.join("\n\t")
+        )
+      end
+
+      block   = error_block(error.class)
+      block ||= error_block(status)
+      block ||= error_block(:base)
+
+      if block
+        halt instance_eval(&block)
+      end
+
+      if server_error?
+        body '<h1>Server Error</h1>'
+      end
+
+      if not_found?
+        headers['X-Cascade'] = 'pass'
+        body '<h1>Not Found</h1>'
+      end
     end
 
     def wrap
@@ -178,6 +267,8 @@ module Poncho
       elsif res.respond_to? :each
         body res
       end
+    rescue ::Exception => e
+      handle_exception!(e)
     end
 
     def mime_type(type, value=nil)
