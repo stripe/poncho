@@ -184,7 +184,7 @@ module Poncho
 
     def run_validations!
       self.class.validators.each do |validator|
-        validator.call(self)
+        instance_eval(&validator)
       end
 
       errors.empty?

@@ -75,7 +75,7 @@ module Poncho
     end
 
     def param(name)
-      param = self.class.params[name]
+      param = self.class.params[name.to_sym]
       raise Error, "Undefined param #{name}" unless param
       param.convert(param_before_type_cast(name))
     end

@@ -15,6 +15,10 @@ module Poncho
         @block   = block
       end
 
+      def to_proc
+        block.to_proc
+      end
+
       def call(*args)
         block.call(*args)
       end
@@ -40,11 +44,11 @@ module Poncho
         filters_for(type) << Filter.new(options, &block)
       end
 
-      def run_filters(type, *args)
+      def run_filters(type, binding = self)
         base = self
 
         while base.respond_to?(:filters_for)
-          base.filters_for(type).each {|f| f.call(*args) }
+          base.filters_for(type).each {|f| binding.instance_eval(&f) }
           base = base.superclass
         end
       end
