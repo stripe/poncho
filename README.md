@@ -121,20 +121,20 @@ The other supported validations out of the box are `:format`, `:not_in`, and `:l
 
 You can use a custom validator via the `validate` method, passing in a block:
 
-  validate do
-    unless param(:customer_id) ~= /\Acus_/
-      errors.add(:customer_id, :invalid_customer)
+    validate do
+      unless param(:customer_id) ~= /\Acus_/
+        errors.add(:customer_id, :invalid_customer)
+      end
     end
-  end
 
-  # Or
+    # Or
 
-  validates :customer_id, :customer_validate
+    validates :customer_id, :customer_validate
 
 Alternatively, if your validation is being used in multiple places, you can wrap it up in a class and
 pass it to the `validate_with` method.
 
-  validates_with CustomValidator
+    validates_with CustomValidator
 
 For a good example of how to build validations, see the [
 existing ones](https://github.com/stripe/poncho/tree/master/lib/poncho/validations).
