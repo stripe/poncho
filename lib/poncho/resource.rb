@@ -45,6 +45,8 @@ module Poncho
       end
     end
 
+    alias_method :describe, :to_hash
+
     # Validation
 
     # We want to validate an attribute if its

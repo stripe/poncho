@@ -86,8 +86,6 @@ module Poncho
   alias :param_for_validation? :respond_to?
 end
 
-require 'poncho/validations'
-
 Dir[File.dirname(__FILE__) + "/params/*.rb"].sort.each do |path|
   filename = File.basename(path)
   require "poncho/params/#{filename}"
