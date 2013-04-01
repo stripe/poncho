@@ -244,7 +244,7 @@ header is set.
 `JSONMethod` also ensures that there's valid JSON error responses to 404s and 500s, as well
 as returning a JSON error hash for validation errors.
 
-    `curl http://localhost:4567/tokens` -d number=
+    $ curl http://localhost:4567/tokens -d number=
       {"error":{"param":"amount","type":"invalid_integer","message":null}
 
 ## Resources
