@@ -151,11 +151,11 @@ overriding the `convert` method.
       module Poncho
         module Params
           class CardHashParam < Param
-            def validate_each(record, attribute, value)
+            def validate_each(method, attribute, value)
               value = convert(value)
 
               unless value.is_a?(Hash) && value.keys == [:number, :exp_month, :exp_year, :cvc]
-                record.errors.add(attribute, :invalid_card_hash, options.merge(:value => value))
+                method.errors.add(attribute, :invalid_card_hash, options.merge(:value => value))
               end
             end
 
