@@ -198,19 +198,21 @@ There are some helper methods to set such things as the HTTP status response cod
 
 ## Method filters
 
-There are various filters you can apply to the request, for example"
+There are various filters you can apply to the request, for example:
 
-    before_validation do
-      # Before validation
-    end
+    class MyMethod < Poncho::Method
+      before_validation do
+        # Before validation
+      end
 
-    before do
-      # Before invoke
-      p params
-    end
+      before do
+        # Before invoke
+        p params
+      end
 
-    after do
-      # After invocation
+      after do
+        # After invocation
+      end
     end
 
 ## Error responses
@@ -219,12 +221,14 @@ You can provide custom responses to exceptions via the `error` class method.
 
 Pass `error` a exception type or status code.
 
-    error MyCustomClass do
-      'Sorry, something went wrong.'
-    end
+    class MyMethod < Poncho::Method
+      error MyCustomClass do
+        'Sorry, something went wrong.'
+      end
 
-    error 403 do
-      'Not authorized.'
+      error 403 do
+        'Not authorized.'
+      end
     end
 
 ## JSON APIs
