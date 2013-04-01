@@ -21,6 +21,7 @@ module Poncho
   autoload :Resource, 'poncho/resource'
   autoload :Request, 'poncho/request'
   autoload :Response, 'poncho/response'
+  autoload :Returns, 'poncho/returns'
   autoload :Param, 'poncho/param'
   autoload :Params, 'poncho/params'
 end

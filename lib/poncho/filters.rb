@@ -32,23 +32,18 @@ module Poncho
 
     module ClassMethods
       def filters
-        @filters ||= {}
-      end
-
-      def filters_for(type)
-        filters[type] ||= []
-        filters[type]
+        @filters ||= Hash.new {[]}
       end
 
       def add_filter(type, options = {}, &block)
-        filters_for(type) << Filter.new(options, &block)
+        filters[type] << Filter.new(options, &block)
       end
 
       def run_filters(type, binding = self)
         base = self
 
-        while base.respond_to?(:filters_for)
-          base.filters_for(type).each {|f| binding.instance_eval(&f) }
+        while base.respond_to?(:filters)
+          base.filters[type].each {|f| binding.instance_eval(&f) }
           base = base.superclass
         end
       end

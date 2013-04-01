@@ -192,7 +192,7 @@ The same goes for the response object:
 There are some helper methods to set such things as the HTTP status response codes and body.
 
     def invoke
-      status '201'
+      status 201
       body 'Created!'
     end
 
@@ -238,7 +238,7 @@ will ensure that all response bodies are converted into JSON and that the correc
 header is set.
 
     class TokenCreateMethod < Poncho::JSONMethod
-      param :number
+      param :number, :required => true
 
       def invoke
         {:token => '123'}
@@ -249,7 +249,7 @@ header is set.
 as returning a JSON error hash for validation errors.
 
     $ curl http://localhost:4567/tokens -d number=
-      {"error":{"param":"amount","type":"invalid_integer","message":null}
+      {"error":{"param":"number","type":"presence"}
 
 ## Resources
 

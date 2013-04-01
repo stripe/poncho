@@ -103,7 +103,7 @@ module Poncho
       halt(*args)
     end
 
-    def content_type(type = nil, params={})
+    def content_type(type = nil, params = {})
       return response['Content-Type'] unless type
       default = params.delete :default
       mime_type = mime_type(type) || default
@@ -111,7 +111,7 @@ module Poncho
       response['Content-Type'] = mime_type.dup
     end
 
-    def body(value=nil, &block)
+    def body(value = nil, &block)
       if block_given?
         def block.each; yield(call) end
         response.body = block
