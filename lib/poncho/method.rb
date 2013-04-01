@@ -115,21 +115,13 @@ module Poncho
       if block_given?
         def block.each; yield(call) end
         response.body = block
+        nil
       elsif value
         response.body = value
+        nil
       else
         response.body
       end
-    end
-
-    def json(value, code = nil)
-      content_type :json
-      status code if code
-      value.to_json
-    end
-
-    def json?
-      request.accept?(mime_type(:json))
     end
 
     # Statuses
@@ -183,8 +175,8 @@ module Poncho
 
     # Validation
 
-    alias :read_attribute_for_validation :param_before_type_cast
-    alias :param_for_validation? :param?
+    alias_method :read_attribute_for_validation, :param_before_type_cast
+    alias_method :param_for_validation?, :param?
 
     protected
 
@@ -209,7 +201,7 @@ module Poncho
 
     def dispatch!
       run_filters :before
-      halt invoke
+      invoke
     ensure
       run_filters :after
     end
@@ -244,16 +236,11 @@ module Poncho
       block ||= error_block(:base)
 
       if block
-        halt instance_eval(&block)
-      end
-
-      if server_error?
-        body '<h1>Server Error</h1>'
-      end
-
-      if not_found?
-        headers['X-Cascade'] = 'pass'
-        body '<h1>Not Found</h1>'
+        wrap {
+          instance_eval(&block)
+        }
+      else
+        raise error
       end
     end
 

@@ -60,7 +60,7 @@ module Poncho
     alias_method :read_attribute_for_validation, :send
 
     def validate!
-      raise ResourceError, errors.to_s unless valid?
+      raise ResourceValidationError, errors.to_s unless valid?
     end
 
     def method_missing(method_symbol, *arguments) #:nodoc:

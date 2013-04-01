@@ -8,17 +8,15 @@ module Poncho
     end
 
     module ClassMethods
-      def returns(resource = nil)
-        @returns = resource if resource
-        @returns
+      def returns(*resources)
+        @returns = resources if resources.any?
+        @returns ||= []
       end
     end
 
     def body(value = nil)
-      returns = self.class.returns
-
-      if value && returns && !value.is_a?(returns)
-        raise InvalidReturn, "Invalid return: #{value}"
+      if value && success? && self.class.returns.none? {|res| value.is_a?(res) }
+        raise InvalidReturn, "Invalid body: #{value}"
       end
 
       super

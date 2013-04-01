@@ -53,9 +53,13 @@ class ChargeListMethod < Poncho::JSONMethod
 end
 
 class ChargeCreateMethod < Poncho::JSONMethod
+  include Poncho::Returns
+
   param :amount, :type => :integer, :required => true
   param :currency, :in => ['GBP', 'USD']
   param :card
+
+  returns ChargeResource
 
   def invoke
     charge = Charge.new(param(:amount), param(:currency))

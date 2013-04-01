@@ -2,7 +2,7 @@ require 'poncho/version'
 
 module Poncho
   autoload :Error, 'poncho/error'
-  autoload :ResourceError, 'poncho/error'
+  autoload :ResourceValidationError, 'poncho/error'
   autoload :ClientError, 'poncho/error'
   autoload :ServerError, 'poncho/error'
   autoload :ValidationError, 'poncho/error'

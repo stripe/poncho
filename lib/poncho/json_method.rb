@@ -7,24 +7,15 @@ end
 module Poncho
   class JSONMethod < Method
     error 500 do
-      body(:error => {
-        :type    => :server_error,
-        :message => 'Sorry, something went wrong.'
-      })
+      body ServerError.new
     end
 
     error 403 do
-      body(:error => {
-        :type    => :client_error,
-        :message => 'Invalid request.'
-      })
+      body InvalidRequestError.new
     end
 
     error 404 do
-      body(:error => {
-        :type    => :not_found,
-        :message => 'Not found'
-      })
+      body NotFoundError.new
     end
 
     error ValidationError do
@@ -34,12 +25,20 @@ module Poncho
     def body(value = nil)
       if value && !value.is_a?(String)
         content_type :json
-        response.body = value.to_json
-      elsif value
-        response.body = value
-      else
-        response.body
+        value = value.to_json
       end
+
+      super
+    end
+
+    def json(value, code = nil)
+      content_type :json
+      status code if code
+      value.to_json
+    end
+
+    def json?
+      request.accept?(mime_type(:json))
     end
   end
 end
