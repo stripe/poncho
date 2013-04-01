@@ -23,7 +23,7 @@ module Poncho
     end
 
     def body(value = nil)
-      if value && !value.is_a?(String)
+      if value && !json_content_type?
         content_type :json
         value = value.to_json
       end
@@ -31,14 +31,14 @@ module Poncho
       super
     end
 
-    def json(value, code = nil)
-      content_type :json
-      status code if code
-      value.to_json
-    end
+    alias_method :json, :body
 
     def json?
       request.accept?(mime_type(:json))
+    end
+
+    def json_content_type?
+      response['Content-Type'] == mime_type(:json)
     end
   end
 end

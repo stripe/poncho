@@ -115,10 +115,8 @@ module Poncho
       if block_given?
         def block.each; yield(call) end
         response.body = block
-        nil
       elsif value
         response.body = value
-        nil
       else
         response.body
       end
