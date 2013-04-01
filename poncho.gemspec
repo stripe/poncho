@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Poncho::VERSION
   gem.authors       = ["Alex MacCaw"]
   gem.email         = ["alex@stripe.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{Poncho is an API to build REST APIs with a convenient DSL.}
+  gem.summary       = %q{Poncho is an API to build APIs}
+  gem.homepage      = "https://github.com/stripe/poncho"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

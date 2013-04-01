@@ -229,7 +229,7 @@ Pass `error` a exception type or status code.
 
 ## JSON APIs
 
-If your API only returns JSON then Poncho has a convienant `JSONMethod` class which
+If your API only returns JSON then Poncho has a convenient `JSONMethod` class which
 will ensure that all response bodies are converted into JSON and that the correct content type
 header is set.
 
