@@ -180,10 +180,6 @@ module Poncho
 
     protected
 
-    error ValidationError do
-      406
-    end
-
     def validate!
       run_filters :before_validation
       run_extra_param_validations!
@@ -244,7 +240,7 @@ module Poncho
           instance_eval(&block)
         }
       else
-        raise error
+        raise error if server_error?
       end
     end
 
