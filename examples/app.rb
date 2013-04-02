@@ -67,5 +67,14 @@ class ChargeCreateMethod < Poncho::JSONMethod
   end
 end
 
+class ChargeRetrieveMethod < Poncho::JSONMethod
+  param :id, :type => :integer
+
+  def invoke
+    {:id => param(:id)}
+  end
+end
+
 post '/charges', &ChargeCreateMethod
 get '/charges', &ChargeListMethod
+get '/charges/:id', &ChargeRetrieveMethod

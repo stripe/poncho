@@ -32,7 +32,34 @@ module Poncho
       safe? or put? or delete?
     end
 
+    def params
+      @params ||= begin
+        params = super.merge(action_dispatch_params)
+        indifferent_params(params)
+      end
+    end
+
     private
+
+    # Enable string or symbol key access to the nested params hash.
+    def indifferent_params(params)
+      params = indifferent_hash.merge(params)
+      params.each do |key, value|
+        next unless value.is_a?(Hash)
+        params[key] = indifferent_params(value)
+      end
+    end
+
+    # Creates a Hash with indifferent access.
+    def indifferent_hash
+      Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
+    end
+
+    # Pass in params from Rails routing
+    def action_dispatch_params
+      action_dispatch_params = env['action_dispatch.request.path_parameters'] || {}
+      action_dispatch_params.inject({}) {|hash, (key, value)| hash[key.to_s] = value; hash }
+    end
 
     def accept_entry(entry)
       type, *options = entry.delete(' ').split(';')

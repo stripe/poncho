@@ -4,8 +4,8 @@ module Poncho
     include Filters
     include Params
 
-    def self.call(env)
-      self.new.call(env)
+    def self.call(env, params = {})
+      self.new.call(env, params)
     end
 
     # Some magic so you can do one-line
@@ -13,7 +13,7 @@ module Poncho
     #   get '/charges', &ChargesListMethod
     def self.to_proc
       this = self
-      Proc.new { this.call(env) }
+      Proc.new { this.call(env, params) }
     end
 
     # Filters
@@ -41,10 +41,13 @@ module Poncho
 
     attr_reader :env, :request, :response
 
-    def call(env)
+    def call(env, params = {})
       @env      = env
       @request  = Request.new(env)
       @response = Response.new
+
+      # Extra params, say from Sinatra's routing
+      @request.params.merge!(params)
 
       wrap {
         validate!
@@ -75,9 +78,9 @@ module Poncho
     end
 
     def param(name)
+      value = param_before_type_cast(name)
       param = self.class.params[name.to_sym]
-      raise Error, "Undefined param #{name}" unless param
-      param.convert(param_before_type_cast(name))
+      param ? param.convert(value) : value
     end
 
     def param?(name)
@@ -187,8 +190,10 @@ module Poncho
       run_filters :after_validation
     end
 
+    DEFAULT_PARAMS = %w{splat captures action controller}
+
     def run_extra_param_validations!
-      request.params.keys.each do |param|
+      (request.params.keys - DEFAULT_PARAMS).each do |param|
         unless self.class.params.has_key?(param.to_sym)
           errors.add(param, :invalid_param)
         end
