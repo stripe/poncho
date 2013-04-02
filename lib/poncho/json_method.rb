@@ -7,19 +7,19 @@ end
 module Poncho
   class JSONMethod < Method
     error 500 do
-      body ServerError.new
+      json ServerError.new
     end
 
     error 403 do
-      body InvalidRequestError.new
+      json InvalidRequestError.new
     end
 
     error 404 do
-      body NotFoundError.new
+      json NotFoundError.new
     end
 
     error ValidationError do
-      body env['poncho.error'].errors
+      json env['poncho.error'].errors
     end
 
     def body(value = nil)
@@ -31,7 +31,10 @@ module Poncho
       super
     end
 
-    alias_method :json, :body
+    def json(value)
+      content_type :json
+      body(value.to_json)
+    end
 
     def json?
       request.accept?(mime_type(:json))
