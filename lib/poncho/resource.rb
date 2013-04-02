@@ -6,6 +6,10 @@ module Poncho
     attr_reader :record
 
     def initialize(record)
+      if record.nil?
+        raise ResourceValidationError, 'Invalid nil record'
+      end
+
       @record = record
     end
 
