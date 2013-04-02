@@ -5,3 +5,4 @@ gemspec
 
 # For testing
 gem 'sinatra'
+gem 'thin'
