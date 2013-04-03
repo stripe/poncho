@@ -1,6 +1,6 @@
 module Poncho
   class Error < StandardError
-    def to_json
+    def to_json(*)
       as_json.to_json
     end
 

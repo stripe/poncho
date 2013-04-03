@@ -118,7 +118,7 @@ module Poncho
       }
     end
 
-    def to_json(options=nil)
+    def to_json(*)
       as_json.to_json
     end
 
