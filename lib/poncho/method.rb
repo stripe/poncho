@@ -223,6 +223,9 @@ module Poncho
     end
 
     def handle_exception!(error)
+      # Exception raised in error handling
+      raise error if env['poncho.error']
+
       env['poncho.error'] = error
 
       status error.respond_to?(:code) ? Integer(error.code) : 500
