@@ -33,7 +33,7 @@ module Poncho
       [to_json]
     end
 
-    def to_json(options = nil)
+    def to_json(*)
       as_json.to_json
     end
 
