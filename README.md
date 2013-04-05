@@ -132,7 +132,7 @@ You can use a custom validator via the `validate` method, passing in a block:
     validates :customer_id, :customer_validate
 
 Alternatively, if your validation is being used in multiple places, you can wrap it up in a class and
-pass it to the `validate_with` method.
+pass it to the `validates_with` method.
 
     validates_with CustomValidator
 
