@@ -59,7 +59,7 @@ In a similar vein to Sinatra, anything returned from `invoke` is sent right back
 return a http status code, a body string, or even a Rack response array.
 
 ```ruby
-class ChargeListMethod < Poncho::Method
+class UsersListMethod < Poncho::Method
   def invoke
     # Some DB shizzle
 
@@ -95,13 +95,13 @@ If you're writing a JSON API, you'll probably want to inherit the Method from `P
 
 You can get access to the request params, via the `params` or `param(name)` methods.
 
-Before you can use a param though, you need to define it:
+Before you can use a `param` though, you need to define it:
 
 ```ruby
 param :param_name
 ```
 
-By default, param are of type 'string'. you can choose a different type via the `:type` option:
+By default, `param` are of type 'string'. You can choose a different type via the `:type` option:
 
 ```ruby
 param :amount, :type => :integer
@@ -110,17 +110,17 @@ param :amount, :type => :integer
 There are a bunch of predefined types, such as `:integer`, `:array`, `:boolean_string` etc, but you can
 also easily define your own custom ones (covered later).
 
-Poncho will automatically validate that if a paramter is provided it is in a valid format.
+Poncho will automatically validate that if a parameter is provided it is in a valid format.
 Poncho will also handle type conversion for you.
 
 So for example, in the case above, Poncho will automatically validate that the `amount` param is
-indeed an Integer or an Integer string, and will coerce the parameter into an integer when you try to access it.
+indeed an Integer or an Integer string, and will coerce the parameter into an Integer when you try to access it.
 
 ## Validation
 
 As well as the default type validation, Poncho lets you validate presence, format, length and much more!
 
-For example, to validate that a `:currency` parameter is provided, pass in the `:presence' option:
+For example, to validate that a `:currency` parameter is provided, pass in the `:presence` option:
 
 ```ruby
 param :currency, :presence => true
@@ -149,9 +149,11 @@ validate do
     errors.add(:customer_id, :invalid_customer)
   end
 end
+```
 
-# Or
+Or
 
+```ruby
 validates :customer_id, :customer_validate
 ```
 
@@ -170,7 +172,7 @@ existing ones](https://github.com/stripe/poncho/tree/master/lib/poncho/validatio
 As your API grows you'll probably start to need custom parameter types. These can be useful to ensure
 parameters are both valid and converted into suitable values.
 
-To define a custom parameter, simply inherit from `Poncho::Param`. For example, let's define a new param called
+To define a custom parameter, simply inherit from `Poncho::Param`. For example, let's define a new parameter called
 `CardHashParam`. It needs to validate input via overriding the `validate_each` method, and convert input via
 overriding the `convert` method.
 
@@ -257,7 +259,7 @@ end
 
 You can provide custom responses to exceptions via the `error` class method.
 
-Pass `error` a exception type or status code.
+Pass `error` an exception type or status code.
 
 ```ruby
 class MyMethod < Poncho::Method
@@ -290,8 +292,9 @@ end
 `JSONMethod` also ensures that there's valid JSON error responses to 404s and 500s, as well
 as returning a JSON error hash for validation errors.
 
-    $ curl http://localhost:4567/tokens -d number=
-      {"error":{"param":"number","type":"presence"}
+```
+$ curl http://localhost:4567/tokens -d number={"error":{"param":"number","type":"presence"}
+```
 
 ## Resources
 
@@ -320,7 +323,7 @@ end
 
 As you can see in the example above, you can override params and return a custom response.
 
-When the `Resource` instance is converted into JSON the appropriate params will be used and serialized.
+When the `Resource` instance is converted into JSON, the appropriate params will be used and serialized.
 
 ```ruby
 class ChargeResource < Poncho::Resource
