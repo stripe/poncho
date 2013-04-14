@@ -22,7 +22,7 @@ Or install it yourself as:
 
     $ gem install poncho
 
-## TLDR Usage
+## TL;DR Usage
 
 ```ruby
 class ChargeResource < Poncho::Resource
