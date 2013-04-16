@@ -8,10 +8,7 @@ class TestJSONMethod < MiniTest::Unit::TestCase
   end
 
   def setup
-  end
-
-  def test_serializes_body
-     method = Class.new(Poncho::JSONMethod) do
+    @method = Class.new(Poncho::JSONMethod) do
       param :id, :type => :integer
       param :body, :type => :string
 
@@ -19,22 +16,15 @@ class TestJSONMethod < MiniTest::Unit::TestCase
         params
       end
     end
+  end
 
-    status, headers, body = method.call(env(:id => '1', :body => 'wem'))
+  def test_serializes_body
+    status, headers, body = @method.call(env(:id => '1', :body => 'wem'))
     assert_equal({:id => 1, :body => 'wem'}.to_json, body.body.first)
   end
 
   def test_serializes_errors
-     method = Class.new(Poncho::JSONMethod) do
-      param :id, :type => :integer
-      param :body, :type => :string
-
-      def invoke
-        params
-      end
-    end
-
-    status, headers, body = method.call(env(:id => 'string', :body => 'wem'))
+    status, headers, body = @method.call(env(:id => 'string', :body => 'wem'))
     assert_equal({:error => {:param => 'id', :type => 'invalid_integer', :message => nil}}.to_json, body.body.first)
   end
 end
