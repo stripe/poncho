@@ -55,7 +55,7 @@ module Poncho
     end
 
     def code
-      400
+      422
     end
 
     def as_json
