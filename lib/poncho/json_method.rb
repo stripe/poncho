@@ -10,7 +10,7 @@ module Poncho
       json ServerError.new
     end
 
-    error 403 do
+    error 400 do
       json InvalidRequestError.new
     end
 
