@@ -4,8 +4,8 @@ module Poncho
       def validate_each(record, attribute, value)
         converted = convert(value)
 
-        if !(converted.is_a?(TrueClass) || converted.is_a?(FalseClass))
-          record.errors.add(attribute, :invalid_boolean, options.merge(:value => value))
+        unless (converted.is_a?(TrueClass) || converted.is_a?(FalseClass))
+          record.errors.add(attribute, :invalid_boolean, options.merge(value: value))
         end
       end
 
