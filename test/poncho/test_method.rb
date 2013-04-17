@@ -16,13 +16,13 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:amount => nil))
-    assert_equal 406, status
+    assert_equal 422, status
 
     status, headers, body = method.call(env(:amount => '1'))
     assert_equal 200, status
 
     status, headers, body = method.call(env(:amount => 'blah'))
-    assert_equal 406, status
+    assert_equal 422, status
   end
 
   def test_that_string_params_are_validated
@@ -31,7 +31,7 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:amount => nil))
-    assert_equal 406, status
+    assert_equal 422, status
 
     status, headers, body = method.call(env(:amount => 'blah'))
     assert_equal 200, status
@@ -43,7 +43,7 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env())
-    assert_equal 406, status
+    assert_equal 422, status
 
     status, headers, body = method.call(env(:amount => 'test'))
     assert_equal 200, status
@@ -61,12 +61,12 @@ class TestMethod < MiniTest::Unit::TestCase
       param :currency, :type => custom_param
 
       def invoke
-        halt param(:currency) == true ? 200 : 406
+        halt param(:currency) == true ? 200 : 422
       end
     end
 
     status, headers, body = method.call(env(:currency => 'notcustom'))
-    assert_equal 406, status
+    assert_equal 422, status
 
     status, headers, body = method.call(env(:currency => 'custom'))
     assert_equal 200, status
@@ -86,7 +86,7 @@ class TestMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:currency => 'RSU'))
-    assert_equal 406, status
+    assert_equal 422, status
 
     status, headers, body = method.call(env(:currency => 'USD'))
     assert_equal 200, status
