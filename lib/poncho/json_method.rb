@@ -10,7 +10,7 @@ module Poncho
       json ServerError.new
     end
 
-    error 403 do
+    error 422 do
       json InvalidRequestError.new
     end
 
@@ -18,8 +18,8 @@ module Poncho
       json NotFoundError.new
     end
 
-    error ValidationError do
-      json env['poncho.error'].errors
+    error Error do
+      json env['poncho.error']
     end
 
     def body(value = nil)
