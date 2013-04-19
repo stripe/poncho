@@ -102,4 +102,62 @@ class TestMethod < MiniTest::Unit::TestCase
     status, headers, body = method.call(env())
     assert_equal({:some => 'stuff'}.to_json, body.body.first)
   end
+
+  def test_before_filter
+    method = Class.new(Poncho::Method) do
+      before do
+        halt 411
+      end
+
+      def invoke
+        200
+      end
+    end
+
+    status, headers, body = method.call(env())
+    assert_equal 411 , status
+  end
+
+  def test_before_validation_filter
+    method = Class.new(Poncho::Method) do
+      param :amount, :type => :integer
+
+      before_validation do
+        halt 411
+      end
+    end
+
+    status, headers, body = method.call(env())
+    assert_equal 411 , status
+  end
+
+  def test_after_validation_filter
+    method = Class.new(Poncho::Method) do
+      after_validation do
+        halt 411
+      end
+
+      def invoke
+        200
+      end
+    end
+
+    status, headers, body = method.call(env())
+    assert_equal 411 , status
+  end
+
+  def test_after_filter
+    method = Class.new(Poncho::Method) do
+      after do
+        halt 411
+      end
+
+      def invoke
+        200
+      end
+    end
+
+    status, headers, body = method.call(env())
+    assert_equal 411 , status
+  end
 end

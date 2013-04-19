@@ -32,7 +32,7 @@ module Poncho
 
     module ClassMethods
       def filters
-        @filters ||= Hash.new {[]}
+        @filters ||= Hash.new {|h, k| h[k] = [] }
       end
 
       def add_filter(type, options = {}, &block)
