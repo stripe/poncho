@@ -26,6 +26,14 @@ module Poncho
       add_filter(:before_validation, options, &block)
     end
 
+    def self.after(options = {}, &block)
+      add_filter(:after, options, &block)
+    end
+
+    def self.after_validation(options = {}, &block)
+      add_filter(:after_validation, options, &block)
+    end
+
     def self.errors
       @errors ||= {}
     end
