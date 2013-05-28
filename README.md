@@ -291,7 +291,7 @@ end
 as returning a JSON error hash for validation errors.
 
     $ curl http://localhost:4567/tokens -d number=
-      {"error":{"param":"number","type":"presence"}
+      {"error":{"param":"number","type":"presence"}}
 
 ## Resources
 
