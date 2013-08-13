@@ -10,8 +10,8 @@ module Poncho
       end
 
       def convert(value)
-        return true if value == 'yes'
-        return false if value == 'no'
+        return true if value == 'true'
+        return false if value == 'false'
         nil
       end
     end
