@@ -75,7 +75,7 @@ module Poncho
     end
 
     def to_s
-      "Validation errors:\n " + full_messages.join(', ')
+      full_messages.join('; ')
     end
 
     # Returns an array of error messages, with the attribute name included
