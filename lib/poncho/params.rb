@@ -24,14 +24,6 @@ module Poncho
         param
       end
 
-      def string(name, options = {})
-        param(name, options.merge(:type => :string))
-      end
-
-      def integer(name, options = {})
-        param(name, options.merge(:type => :integer))
-      end
-
       private
 
       def param_for_type(type)
@@ -49,7 +41,7 @@ module Poncho
           validates_param(attribute, :param => param)
         end
 
-        if param.options[:required]
+        unless param.options[:optional]
           validates_presence_of(attribute)
         end
 
