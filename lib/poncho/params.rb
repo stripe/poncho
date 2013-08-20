@@ -5,7 +5,7 @@ module Poncho
     end
 
     module ClassMethods
-      VALIDATES_DEFAULT_KEYS = [:resource, :type, :required, :format, :in, :not_in, :length]
+      VALIDATES_DEFAULT_KEYS = [:resource, :type, :optional, :format, :in, :not_in, :length]
 
       def params
         @params ||= {}
