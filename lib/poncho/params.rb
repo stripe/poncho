@@ -7,6 +7,10 @@ module Poncho
     module ClassMethods
       VALIDATES_DEFAULT_KEYS = [:resource, :type, :optional, :format, :in, :not_in, :length]
 
+      def inherited(subclass)
+        subclass.instance_variable_set(:'@params', params.dup)
+      end
+
       def params
         @params ||= {}
       end
