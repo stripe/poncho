@@ -1,9 +1,16 @@
-require 'minitest/autorun'
-require 'rack/mock'
-require 'poncho'
-require 'json'
+require File.expand_path(File.join(File.dirname(__FILE__), '../_lib'))
 
-class TestResource < MiniTest::Unit::TestCase
+module Poncho::InstanceValidations
+  class DivisibleByThreeValidator < Poncho::EachValidator
+    def validate_each(record, attribute, value)
+      unless value % 3 === 0
+        record.errors.add(attribute, :expected => "integer divisible by 3", :actual => value)
+      end
+    end
+  end
+end
+
+class TestResource < Test
   class Fuzzy
     def initialize(attrs = {})
       attrs.each do |key, value|
@@ -14,31 +21,57 @@ class TestResource < MiniTest::Unit::TestCase
   end
 
   def test_resource_params
-    resource = Class.new(Poncho::Resource) do
+    resource_class = Class.new(Poncho::Resource) do
       param :amount, :type => :integer
     end
 
-    result = resource.new(Fuzzy.new(:amount => 1))
-    assert_equal({:amount => 1}, result.as_json)
+    resource = resource_class.new(Fuzzy.new(:amount => 123))
+    assert_equal({:amount => 123}, resource.to_hash)
+    assert_equal(123, resource.amount)
   end
 
-  def test_resource_validation
-    resource = Class.new(Poncho::Resource) do
+  def test_resource_params_from_hash
+    resource_class = Class.new(Poncho::Resource) do
+      param :amount, :type => :integer
+      param :key, :type => :string
+    end
+
+    resource = resource_class.new({:amount => 123, :key => 'foo'})
+
+    assert_equal({:amount => 123, :key => 'foo'}, resource.to_hash)
+    assert_equal('foo', resource.key)
+  end
+
+  def test_resource_type_validation
+    resource_class = Class.new(Poncho::Resource) do
       param :amount, :type => :integer
     end
 
-    result = resource.new(Fuzzy.new(:amount => nil))
-    assert result.valid?
+    resource = resource_class.new({:amount => nil})
+    assert(resource.valid?)
 
-    result = resource.new(Fuzzy.new(:amount => 1))
-    assert result.valid?
+    resource = resource_class.new({:amount => 1})
+    assert(resource.valid?)
 
-    result = resource.new(Fuzzy.new(:amount => 's'))
-    assert !result.valid?
+    resource = resource_class.new({:amount => 's'})
+    assert(!resource.valid?)
+  end
+
+  def test_resource_extra_validation
+    resource_class = Class.new(Poncho::Resource)
+
+    resource_class.param :amount, :type => :integer, :divisible_by_three => true
+
+    assert(resource_class.new({:amount => 3}).valid?)
+    assert(resource_class.new({:amount => -36}).valid?)
+    assert(resource_class.new({:amount => 0}).valid?)
+
+    assert(!resource_class.new({:amount => 3.3}).valid?)
+    assert(!resource_class.new({:amount => -100}).valid?)
   end
 
   def test_resource_conversion
-    resource = Class.new(Poncho::Resource) do
+    resource_class = Class.new(Poncho::Resource) do
       param :amount, :type => :integer
 
       def amount
@@ -46,13 +79,13 @@ class TestResource < MiniTest::Unit::TestCase
       end
     end
 
-    result = resource.new(Fuzzy.new(:amount => 2))
-    assert_equal 20, result.amount
-    assert_equal({:amount => 20}, result.as_json)
+    resource = resource_class.new(Fuzzy.new(:amount => 2))
+    assert_equal 20, resource.amount
+    assert_equal({:amount => 20}, resource.to_hash)
   end
 
   def test_sub_resources
-    card_resource = Class.new(Poncho::Resource) do
+    card_resource_class = Class.new(Poncho::Resource) do
       param :number
 
       def number
@@ -60,12 +93,12 @@ class TestResource < MiniTest::Unit::TestCase
       end
     end
 
-    resource = Class.new(Poncho::Resource) do
-      param :card, :resource => card_resource
+    resource_class = Class.new(Poncho::Resource) do
+      param :card, :resource => card_resource_class
     end
 
     card   = Fuzzy.new(:number => '4242 4242 4242 4242')
-    result = resource.new(Fuzzy.new(:card => card))
-    assert_equal({:card => {:number => '4242'}}.to_json, result.to_json)
+    resource = resource_class.new(Fuzzy.new(:card => card))
+    assert_equal({:card => {:number => '4242'}}.to_json, resource.to_json)
   end
 end

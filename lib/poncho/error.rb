@@ -23,8 +23,8 @@ module Poncho
     end
 
     def message
-      "Sorry, something went wrong. " +
-      "We've been notified about the problem."
+      super || "Sorry, something went wrong. " +
+        "We've been notified about the problem."
     end
   end
 

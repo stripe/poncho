@@ -2,9 +2,13 @@ module Poncho
   module Validations
     class PresenceValidator < EachValidator
       def validate_each(record, attribute, value)
-        if !value || value == ""
-          record.errors.add(attribute, :presence, options.merge(:value => value))
+        if self.class.is_empty_value?(value)
+          record.errors.add(attribute, "Missing required value for #{attribute}")
         end
+      end
+
+      def self.is_empty_value?(value)
+        value.nil? || (value.respond_to?(:empty?) && value.empty?)
       end
     end
 

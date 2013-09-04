@@ -1,19 +1,26 @@
 module Poncho
   module Validations
     class InclusionValidator < EachValidator
-      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
-                      "and must be supplied as the :in (or :within) option of the configuration hash"
-
       def check_validity!
-        unless [:include?, :call].any?{ |method| delimiter.respond_to?(method) }
-          raise ArgumentError, ERROR_MESSAGE
+        unless delimiter.respond_to?(:call) or  delimiter.respond_to?(:include?)
+            raise ArgumentError.new("An object with the method #include? or a proc " <<
+              "or lambda is required, and must be supplied as the :in (or :within) " <<
+              "option of the configuration hash")
         end
       end
 
+      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible
+      # values in the range for equality, so it may be slow for large ranges. The new
+      # <tt>Range#cover?</tt> uses the previous logic of comparing a value with the
+      # range endpoints.
       def validate_each(record, attribute, value)
-        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
-        unless exclusions.send(inclusion_method(exclusions), value)
-          record.errors.add(attribute, :inclusion, options.merge(:value => value))
+        inclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
+        if inclusions.is_a?(Range) && !inclusions.cover?(value)
+          record.errors.add(attribute, "You supplied '#{value}' but the value " <<
+            "must be in the range #{inclusions.min} through #{inclusions.max}.")
+        elsif !inclusions.include?(value)
+          record.errors.add(attribute, "You supplied '#{value}' but the value " <<
+            "must be one of: #{inclusions.join(", ")}.")
         end
       end
 
@@ -23,13 +30,6 @@ module Poncho
         @delimiter ||= options[:in] || options[:within]
       end
 
-      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible
-      # values in the range for equality, so it may be slow for large ranges. The new
-      # <tt>Range#cover?</tt> uses the previous logic of comparing a value with the
-      # range endpoints.
-      def inclusion_method(enumerable)
-        enumerable.is_a?(Range) ? :cover? : :include?
-      end
     end
 
     module HelperMethods

@@ -125,8 +125,18 @@ module Poncho
     # +options+ reader, however the <tt>:attributes</tt> option will be removed
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
-      @attributes = Array(options.delete(:attributes))
-      raise ':attributes cannot be blank' if @attributes.empty?
+      @attributes = options.delete(:attributes)
+
+      if @attributes.nil?
+        raise ArgumentError.new('You must pass an array of attributes as an option.')
+      end
+      unless @attributes.kind_of?(Array)
+        raise ArgumentError.new("You must pass an array as the attributes option not #{@attributes.class.name}")
+      end
+      if @attributes.empty?
+        raise ArgumentError.new('You cannot pass an empty array of attributes')
+      end
+
       super
       check_validity!
     end

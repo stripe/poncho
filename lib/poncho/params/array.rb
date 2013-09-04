@@ -2,8 +2,8 @@ module Poncho
   module Params
     class ArrayParam < Param
       def validate_each(record, attribute, value)
-        if !value.is_a?(Array)
-          record.errors.add(attribute, :invalid_array, options.merge(:value => value))
+        unless value.is_a?(Array)
+          record.errors.add(attribute, :expected => "array", :actual => value.class.name)
         end
       end
 

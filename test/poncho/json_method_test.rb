@@ -1,8 +1,6 @@
-require 'minitest/autorun'
-require 'rack/mock'
-require 'poncho'
+require File.expand_path(File.join(File.dirname(__FILE__), '../_lib'))
 
-class TestJSONMethod < MiniTest::Unit::TestCase
+class TestJSONMethod < Test
   def env(params = {})
     Rack::MockRequest.env_for('http://api.com/charges', :params => params)
   end
@@ -35,6 +33,13 @@ class TestJSONMethod < MiniTest::Unit::TestCase
     end
 
     status, headers, body = method.call(env(:id => 'string', :body => 'wem'))
-    assert_equal({:error => {:param => 'id', :type => 'invalid_integer', :message => nil}}.to_json, body.body.first)
+
+    assert_equal(422, status, "Expected 422 but got #{status} with body: #{body.body.first}")
+
+    res = JSON.parse(body.body.first)
+
+    assert_equal('id', res['error']['param'])
+    assert_equal('validation_error', res['error']['type'])
+    assert_match(/valid integer/, res['error']['message'])
   end
 end

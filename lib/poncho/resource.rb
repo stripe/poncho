@@ -1,13 +1,13 @@
 module Poncho
   class Resource
     include Params
-    include Validations
+    include ClassValidations
 
     attr_reader :record
 
     def initialize(record)
       if record.nil?
-        raise ResourceValidationError, 'Invalid nil record'
+        raise ResourceValidationError, "Invalid nil value passed to initalizer for #{self.class.name}."
       end
 
       @record = record
@@ -22,7 +22,11 @@ module Poncho
     end
 
     def param_before_type_cast(name)
-      record.send(name) if record.respond_to?(name)
+      if record.kind_of?(Hash) # Should we duck-type this?
+        record[name.to_sym] || record[name.to_s]
+      elsif record.respond_to?(name)
+        record.send(name)
+      end
     end
 
     alias_method :param?, :respond_to?
@@ -34,12 +38,8 @@ module Poncho
     end
 
     def to_json(*)
-      as_json.to_json
-    end
-
-    def as_json(options = nil)
-      validate!
-      to_hash
+      run_validations!
+      to_hash.to_json
     end
 
     def to_hash
@@ -66,7 +66,12 @@ module Poncho
     alias_method :read_attribute_for_validation, :send
 
     def validate!
-      raise ResourceValidationError, errors.to_s unless valid?
+      raise ResourceValidationError.new(errors.to_s) unless run_validations!
+    end
+
+    def run_validations!
+      run_param_validations!
+      super
     end
 
     def method_missing(method_symbol, *arguments) #:nodoc:

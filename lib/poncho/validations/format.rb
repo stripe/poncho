@@ -13,7 +13,13 @@ module Poncho
 
       def check_validity!
         unless options.include?(:with) ^ options.include?(:without)  # ^ == xor, or "exclusive or"
-          raise ArgumentError, "Either :with or :without must be supplied (but not both)"
+          raise ArgumentError.new("Either :with or :without must be supplied (but not both)")
+        end
+
+        if options[:message].nil? || options[:message].empty?
+          raise ArgumentError.new("You must supply format with a message " +
+            "describing the correct format of the value. This will be inserted " +
+            "into an error message as: '#{attributes.first} is invalid: <MESSAGE>'")
         end
 
         check_options_validity(options, :with)
@@ -28,7 +34,7 @@ module Poncho
       end
 
       def record_error(record, attribute, name, value)
-        record.errors.add(attribute, options.merge(:value => value))
+        record.errors.add(attribute, options[:message])
       end
 
       def check_options_validity(options, name)

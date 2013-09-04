@@ -1,8 +1,8 @@
-require 'minitest/autorun'
-require 'rack/mock'
-require 'poncho'
+require File.expand_path(File.join(File.dirname(__FILE__), '../_lib'))
 
-class TestMethod < MiniTest::Unit::TestCase
+require 'rack/mock'
+
+class TestMethod < Test
   def env(params = {})
     Rack::MockRequest.env_for('http://api.com/charges', :params => params)
   end
@@ -10,9 +10,9 @@ class TestMethod < MiniTest::Unit::TestCase
   def setup
   end
 
-  def test_that_integer_params_are_validated
+  def test_param_validation
     method = Class.new(Poncho::Method) do
-      param :amount, :type => :integer
+      param :amount, :type => :integer, :required => true
     end
 
     status, headers, body = method.call(env(:amount => nil))
@@ -25,18 +25,6 @@ class TestMethod < MiniTest::Unit::TestCase
     assert_equal 422, status
   end
 
-  def test_that_string_params_are_validated
-    method = Class.new(Poncho::Method) do
-      param :amount, :type => :string
-    end
-
-    status, headers, body = method.call(env(:amount => nil))
-    assert_equal 422, status
-
-    status, headers, body = method.call(env(:amount => 'blah'))
-    assert_equal 200, status
-  end
-
   def test_presence_validation
     method = Class.new(Poncho::Method) do
       param :amount, :required => true
@@ -47,6 +35,21 @@ class TestMethod < MiniTest::Unit::TestCase
 
     status, headers, body = method.call(env(:amount => 'test'))
     assert_equal 200, status
+  end
+
+  def test_validation_with_optional_parameter
+    method = Class.new(Poncho::Method) do
+      param :amt, :type => :integer, :in => [1, 2, 3, 4]
+    end
+
+    status, headers, body = method.call(env())
+    assert_equal(200, status)
+
+    status, headers, body = method.call(env(:amt => '4'))
+    assert_equal(200, status, "Unexpected error status with body: #{body.body.first}")
+
+    status, headers, body = method.call(env(:amt => '6'))
+    assert_equal(422, status, "Expected 422 but got #{status} with body: #{body.body.first}")
   end
 
   def test_custom_param_conversion
@@ -76,7 +79,7 @@ class TestMethod < MiniTest::Unit::TestCase
     custom_param = Class.new(Poncho::Param) do
       def validate_each(record, name, value)
         unless ['USD', 'GBP'].include?(value)
-          record.errors.add(name, :invalid_currency)
+          record.errors.add(name, :expected => 'valid currency (either USD or GBP)', :actual => value)
         end
       end
     end
@@ -92,15 +95,13 @@ class TestMethod < MiniTest::Unit::TestCase
     assert_equal 200, status
   end
 
-  def test_json_method_returns_json
-    method = Class.new(Poncho::JSONMethod) do
-      def invoke
-        {:some => 'stuff'}
-      end
+  def test_extra_param_validation
+    method = Class.new(Poncho::Method) do
+      param :amt, :type => :integer
     end
 
-    status, headers, body = method.call(env())
-    assert_equal({:some => 'stuff'}.to_json, body.body.first)
+    status, headers, body = method.call(env(:foo => 'bar'))
+    assert_equal(422, status)
   end
 
   def test_before_filter

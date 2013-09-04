@@ -2,18 +2,17 @@ module Poncho
   module Params
     class BooleanParam < Param
       def validate_each(record, attribute, value)
-        converted = convert(value)
-
-        if !(converted.is_a?(TrueClass) || converted.is_a?(FalseClass))
-          record.errors.add(attribute, :invalid_boolean, options.merge(:value => value))
+        if convert(value).nil?
+          record.errors.add(attribute, :expected => 'boolean (true or false)', :actual => value.class.name)
         end
       end
 
       def convert(value)
         if value.is_a?(TrueClass) || value.is_a?(FalseClass)
-          return value
+          value
+        else
+          nil
         end
-        nil
       end
     end
   end

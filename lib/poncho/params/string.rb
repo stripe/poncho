@@ -3,7 +3,7 @@ module Poncho
     class StringParam < Param
       def validate_each(record, attribute, value)
         unless value.is_a?(String)
-          record.errors.add(attribute, :invalid_string, options.merge(:value => value))
+          record.errors.add(attribute, :expected => 'string', :actual => value.class.name)
         end
       end
 

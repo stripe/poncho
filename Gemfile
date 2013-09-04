@@ -4,5 +4,11 @@ source 'https://rubygems.org'
 gemspec
 
 # For testing
-gem 'sinatra'
-gem 'thin'
+group :test do
+  gem 'rack'
+  gem 'sinatra'
+  gem 'thin'
+  gem 'rake'
+  gem 'mocha', '0.10.5'
+  gem 'minitest', '3.2.0'
+end

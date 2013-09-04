@@ -11,7 +11,8 @@ module Poncho
   autoload :Filters, 'poncho/filters'
 
   autoload :Validator, 'poncho/validator'
-  autoload :Validations, 'poncho/validations'
+  autoload :InstanceValidations, 'poncho/validations'
+  autoload :ClassValidations, 'poncho/validations'
   autoload :EachValidator, 'poncho/validator'
   autoload :BlockValidator, 'poncho/validator'
 

@@ -1,6 +1,6 @@
 module Poncho
   class Method
-    include Validations
+    include ClassValidations
     include Filters
     include Params
 
@@ -184,16 +184,19 @@ module Poncho
 
     # Validation
 
-    alias_method :read_attribute_for_validation, :param_before_type_cast
-    alias_method :param_for_validation?, :param?
+    alias_method :read_attribute_for_validation, :param
 
     protected
 
     def validate!
+      raise ValidationError.new(errors) unless run_validations!
+    end
+
+    def run_validations!
       run_filters :before_validation
       run_extra_param_validations!
-      run_validations!
-      raise ValidationError.new(errors) unless errors.empty?
+      run_param_validations!
+      super
     ensure
       run_filters :after_validation
     end
@@ -203,7 +206,7 @@ module Poncho
     def run_extra_param_validations!
       (request.params.keys - DEFAULT_PARAMS).each do |param|
         unless self.class.params.has_key?(param.to_sym)
-          errors.add(param, :invalid_param)
+          errors.add(param, "Unexpected parameter, do not include #{param} in your request.")
         end
       end
     end
@@ -238,7 +241,7 @@ module Poncho
 
       status error.respond_to?(:code) ? Integer(error.code) : 500
 
-      if server_error?
+      if server_error? && request.logger
         request.logger.error(
           "#{error.class}: #{error}\n\t" +
           error.backtrace.join("\n\t")

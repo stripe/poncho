@@ -1,19 +1,27 @@
 module Poncho
   module Validations
     class ExclusionValidator < EachValidator
-      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
-                      "and must be supplied as the :in (or :within) option of the configuration hash"
-
       def check_validity!
-        unless [:include?, :call].any? { |method| delimiter.respond_to?(method) }
-          raise ArgumentError, ERROR_MESSAGE
+        unless delimiter.respond_to?(:call) or  delimiter.respond_to?(:include?)
+            raise ArgumentError.new("An object with the method #include? or a proc " <<
+              "or lambda is required, and must be supplied as the :in (or :within) " <<
+              "option of the configuration hash")
         end
       end
 
+
+      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible
+      # values in the range for equality, so it may be slow for large ranges. The new
+      # <tt>Range#cover?</tt> uses the previous logic of comparing a value with the
+      # range endpoints.
       def validate_each(record, attribute, value)
         exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
-        if exclusions.send(inclusion_method(exclusions), value)
-          record.errors.add(attribute, :exclusion, options.merge(:value => value))
+        if exclusions.is_a?(Range) && exclusions.cover?(value)
+          record.errors.add(attribute, "You supplied '#{value}' but the value " <<
+            "cannot be in the range #{exclusions.min} through #{exclusions.max}.")
+        elsif exclusions.include?(value)
+          record.errors.add(attribute, "You supplied '#{value}' but the value " <<
+            "cannot be one of: #{exclusions.join(", ")}.")
         end
       end
 

@@ -32,11 +32,6 @@ module Poncho
   # there is no need for you to do this manually.
   #
   module Validations
-    def self.included(base)
-      base.extend ClassMethods
-      base.extend HelperMethods
-    end
-
     module HelperMethods
     end
 
@@ -136,26 +131,27 @@ module Poncho
         end
       end
 
-      def validates(*attributes)
-        options = attributes.last.is_a?(::Hash) ? attributes.pop : {}
-
-        validations = options.reject {|key, value| VALIDATES_DEFAULT_KEYS.include?(key) || !value }
-        options     = options.merge(:attributes => attributes)
-
-        validations.each do |key, validator_options|
-          validator_options = {} if validator_options == true
-          validates_with(validator_for_kind(key), validator_options.merge(:attributes => attributes))
-        end
+      def validates(attr_name, validator, options={})
+        validates_with(
+          validator_for_kind(validator),
+          options.merge(:attributes => [attr_name]))
       end
 
       private
 
       def validator_for_kind(kind)
-        return type if type.is_a?(Class)
+        return kind if kind.is_a?(Class)
         name = kind.to_s.split('_').map {|w| w.capitalize }.join
-        const_get("#{name}Validator")
-      rescue NameError
-        raise ArgumentError, "Unknown validator: #{kind}"
+        klass = kind_of?(Class) ? self : self.class
+        begin
+          klass.const_get("#{name}Validator")
+        rescue NameError => e
+          if e.message.start_with?('uninitialized constant')
+            raise ArgumentError.new("Unknown validator: #{kind}")
+          else
+            raise e
+          end
+        end
       end
     end
 
@@ -189,6 +185,21 @@ module Poncho
 
       errors.empty?
     end
+  end
+
+  module ClassValidations
+    include Validations
+
+    def self.included(base)
+      base.extend ClassMethods
+      base.extend HelperMethods
+    end
+  end
+
+  module InstanceValidations
+    include Validations
+    include Validations::ClassMethods
+    include Validations::HelperMethods
   end
 end
 

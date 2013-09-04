@@ -42,14 +42,6 @@ module Poncho
       get(attribute.to_sym) || set(attribute.to_sym, [])
     end
 
-    # Adds to the supplied attribute the supplied error message.
-    #
-    #   p.errors[:name] = "must be set"
-    #   p.errors[:name] # => ['must be set']
-    def []=(attribute, error)
-      self[attribute] << error
-    end
-
     def each
       [to_s]
     end
@@ -106,14 +98,12 @@ module Poncho
     # Return the first error we get
     def as_json(options=nil)
       return {} if messages.empty?
-      attribute, types = messages.first
-      type             = types.first
-
+      attribute, attr_messages = messages.first
       {
         :error => {
           :param => attribute,
-          :type  => type,
-          :message => nil
+          :type  => 'validation_error',
+          :message => attr_messages.first
         }
       }
     end
@@ -126,8 +116,25 @@ module Poncho
       messages.dup
     end
 
-    def add(attribute, message = nil, options = {})
-      self[attribute] << message
+    def add(attribute, message_or_opts={})
+      case message_or_opts
+      when String
+        message = message_or_opts
+        opts = {}
+      when Hash
+        message = nil
+        opts = message_or_opts
+      else
+        raise ArgumentError.new("Second argument must be a message string or options hash")
+      end
+
+      if message.nil? && opts[:expected]
+          message = "Must be a valid #{opts[:expected]}"
+          message << " but was #{opts[:actual]}" if opts[:actual]
+          message << "."
+      end
+
+      self[attribute] << message.to_s
     end
 
     def full_messages
@@ -136,7 +143,7 @@ module Poncho
 
     def full_message(attribute, message)
       return message if attribute == :base
-      "#{attribute} #{message.join(', ')}"
+      "#{attribute} is invalid: #{message.join(' ')}"
     end
   end
 end
