@@ -30,9 +30,37 @@ class TestParam < Test
     errors.expects(:add).never
     Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", true)
     Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", false)
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 'true')
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 'false')
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", '1')
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", '0')
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 1)
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 0)
 
-    errors.expects(:add).with('foo', :expected => 'boolean (true or false)', :actual => 'NilClass')
+    errors.expects(:add).with('foo', :expected => 'boolean (true or false)', :actual => nil)
     Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", nil)
+
+    errors.expects(:add).with('foo', :expected => 'boolean (true or false)', :actual => 'abc')
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 'abc')
+
+    errors.expects(:add).with('foo', :expected => 'boolean (true or false)', :actual => 1.1)
+    Poncho::Params::BooleanParam.new("p").validate_each(record, "foo", 1.1)
+  end
+
+  def test_boolean_param_convert
+    p = Poncho::Params::BooleanParam.new("p")
+
+    [true, 'true', '1', 1, -1, 123].each do |v|
+      assert_equal(true, p.convert(v))
+    end
+
+    [false, 'false', '0', 0].each do |v|
+      assert_equal(false, p.convert(v))
+    end
+
+    [nil, 'abc', 1.1, 0.0, []].each do |v|
+      assert_equal(nil, p.convert(v))
+    end
   end
 
   def test_integer_param_validation
