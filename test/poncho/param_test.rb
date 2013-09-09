@@ -50,15 +50,15 @@ class TestParam < Test
   def test_boolean_param_convert
     p = Poncho::Params::BooleanParam.new("p")
 
-    [true, 'true', '1', 1, -1, 123].each do |v|
+    [true, 'true', '1', 1, 'yes'].each do |v|
       assert_equal(true, p.convert(v))
     end
 
-    [false, 'false', '0', 0].each do |v|
+    [false, 'false', '0', 0, 'no'].each do |v|
       assert_equal(false, p.convert(v))
     end
 
-    [nil, 'abc', 1.1, 0.0, []].each do |v|
+    [nil, 'abc', 1.1, [], 123, -1, 'y', 'n'].each do |v|
       assert_equal(nil, p.convert(v))
     end
   end

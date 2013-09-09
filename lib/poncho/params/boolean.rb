@@ -10,12 +10,10 @@ module Poncho
       def convert(value)
         if value.is_a?(TrueClass) || value.is_a?(FalseClass)
           value
-        elsif value.is_a?(String)
-          value = value.strip.downcase
-          return true if ["1", "true"].include?(value)
-          return false if ["0", "false"].include?(value)
-        elsif value.is_a?(Integer)
-          return value != 0
+        elsif ['1', 'true', 'yes', 1].include?(value)
+          true
+        elsif ['0', 'false', 'no', 0].include?(value)
+          false
         else
           nil
         end
