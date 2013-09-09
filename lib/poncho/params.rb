@@ -6,6 +6,14 @@ module Poncho
 
     module ClassMethods
       def params
+        if superclass && superclass.respond_to?(:params)
+          superclass.params.merge(_params)
+        else
+          _params
+        end
+      end
+
+      def _params
         @params ||= {}
       end
 
@@ -15,7 +23,7 @@ module Poncho
 
         klass = param_for_type(type)
         param = klass.new(name, options)
-        params[param.name] = param
+        _params[param.name] = param
 
         param
       end
