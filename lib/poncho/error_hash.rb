@@ -1,5 +1,5 @@
 module Poncho
-  class ErrorDict
+  class ErrorHash
     attr_reader :messages
 
     def initialize(base)
@@ -67,7 +67,7 @@ module Poncho
     end
 
     def to_s
-      "Validation errors:\n " + full_messages.join(', ')
+      full_messages.join('; ')
     end
 
     # Returns an array of error messages, with the attribute name included
@@ -95,28 +95,11 @@ module Poncho
     end
     alias_method :blank?, :empty?
 
-    # Return the first error we get
-    def as_json(options=nil)
-      return {} if messages.empty?
-      attribute, attr_messages = messages.first
-      {
-        :error => {
-          :param => attribute,
-          :type  => 'validation_error',
-          :message => attr_messages.first
-        }
-      }
-    end
-
-    def to_json(*)
-      as_json.to_json
-    end
-
     def to_hash
       messages.dup
     end
 
-    def add(attribute, message_or_opts={})
+    def add(attribute=:base, message_or_opts={})
       case message_or_opts
       when String
         message = message_or_opts

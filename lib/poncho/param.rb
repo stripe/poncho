@@ -1,8 +1,9 @@
 module Poncho
   class Param
-    include InstanceValidations
+    include Validation::Methods
+    include Validation::Helpers
 
-    VALIDATES_DEFAULT_KEYS = [:resource, :type, :required, :format, :in, :not_in, :length, :message]
+    VALIDATES_DEFAULT_KEYS = [:resource, :type, :optional, :format, :in, :not_in, :length, :message]
 
     def self.type
       @type ||= begin
@@ -24,7 +25,7 @@ module Poncho
       self.class.type
     end
 
-    def validate!(record, raw_value)
+    def validate(record, raw_value)
       if Poncho::Validations::PresenceValidator.is_empty_value?(raw_value)
         # TODO: should this just be validated here as opposed to in a validator?
         @presence_validator.validate(record) unless @presence_validator.nil?
@@ -42,13 +43,12 @@ module Poncho
     def validate_each(record, attribute, value); end
 
     def create_validations
-
-      if @options[:required]
+      unless @options.delete(:optional)
         @presence_validator = Poncho::Validations::PresenceValidator.new(
           :attributes => [@name])
       end
 
-      if @options[:format]
+      if (format = @options.delete(:format))
         validates_format_of(@name, :with => @options[:format], :message => @options[:message])
       end
 

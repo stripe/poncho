@@ -4,8 +4,10 @@ module Poncho
     include Filters
     include Params
 
-    def self.call(env, params = {})
-      self.new.call(env, params)
+    self.attr_reader :args_class, :returns_class
+
+    def self.call(params = {})
+      self.new(params).call
     end
 
     # Some magic so you can do one-line
@@ -13,7 +15,45 @@ module Poncho
     #   get '/charges', &ChargesListMethod
     def self.to_proc
       this = self
-      Proc.new { this.call(env, params) }
+      Proc.new { this.call(params) }
+    end
+
+    def self._resource_class(resource_type, resource, block)
+      if resource && block
+        raise ArgumentError("Cannot pass both a resource and a block to `#{resource_type}`")
+      end
+
+      if resource.nil? && block.nil?
+        raise ArgumentError("Must pass either a resource or a block to `#{resource_type}`")
+      end
+
+      class_getter = "#{resource_type}_class".to_sym
+      if superclass &&
+          superclass.respond_to?(class_getter_name) &&
+          superclass.send(class_getter)
+        if resource
+          raise ArgumentError("Cannot pass a resource to `` if a superclass " +
+            "has `accepts` defined.  Please pass a block or inherit from a superclass " +
+            "that doesn't define `accepts`")
+        end
+        base = superclass.send(class_getter)
+      else
+        base = Resource
+      end
+
+      if resource
+        resource
+      else
+        Class.new(base, &block)
+      end
+    end
+
+    def self.accepts(resource=nil, &block)
+      @accepts_class = _parameter_class(:accepts, resource, block)
+    end
+
+    def self.returns(resource, &block)
+      @returns_class = _parameter_class(:returns, resource, block)
     end
 
     # Filters
@@ -22,24 +62,16 @@ module Poncho
       add_filter(:before, options, &block)
     end
 
-    def self.before_validation(options = {}, &block)
-      add_filter(:before_validation, options, &block)
-    end
-
     def self.after(options = {}, &block)
       add_filter(:after, options, &block)
     end
 
-    def self.after_validation(options = {}, &block)
-      add_filter(:after_validation, options, &block)
-    end
-
-    def self.errors
-      @errors ||= {}
+    def self.error_handlers
+      @error_handlers ||= {}
     end
 
     def self.error(type = :base, &block)
-      errors[type] = block
+      error_handlers[type] = block
     end
 
     def self.helpers(*extensions, &block)
@@ -47,175 +79,50 @@ module Poncho
       include(*extensions) if extensions.any?
     end
 
-    attr_reader :env, :request, :response
-
-    def call(env, params = {})
-      @env      = env
-      @request  = Request.new(env)
-      @response = Response.new
-
-      # Extra params, say from Sinatra's routing
-      @request.params.merge!(params)
-
+    def initialize(options={})
+      @options = options
       wrap {
-        validate!
-        dispatch!
       }
+    end
 
-      unless @response['Content-Type']
-        if Array === body and body[0].respond_to? :content_type
-          content_type body[0].content_type
-        else
-          content_type :html
+    def call(params={})
+      wrap {
+        run_extra_param_validations!(params)
+
+        argument_resource = self.class.accepts_class.new(params)
+        unless argument_resource.valid?
+          raise ValidationError.new(argument_resource.errors.to_s)
         end
-      end
 
-      @response.finish
-    end
-
-    def headers(hash=nil)
-      response.headers.merge! hash if hash
-      response.headers
-    end
-
-    def params
-      request.params.inject({}) do |hash, (key, _)|
-        hash[key.to_sym] = param(key)
-        hash
-      end
-    end
-
-    def param(name)
-      value = param_before_type_cast(name)
-      param = self.class.params[name.to_sym]
-      param ? param.convert(value) : value
-    end
-
-    def param?(name)
-      request.params.has_key?(name.to_s)
-    end
-
-    def param_before_type_cast(name)
-      request.params[name.to_s]
-    end
-
-    def status(value=nil)
-      response.status = value if value
-      response.status
-    end
-
-    def redirect(uri, *args)
-      if env['HTTP_VERSION'] == 'HTTP/1.1' and env['REQUEST_METHOD'] != 'GET'
-        status 303
-      else
-        status 302
-      end
-      response['Location'] = uri
-      halt(*args)
-    end
-
-    def content_type(type = nil, params = {})
-      return response['Content-Type'] unless type
-      default = params.delete :default
-      mime_type = mime_type(type) || default
-      fail "Unknown media type: %p" % type if mime_type.nil?
-      response['Content-Type'] = mime_type.dup
-    end
-
-    def body(value = nil, &block)
-      if block_given?
-        def block.each; yield(call) end
-        response.body = block
-      elsif value
-        response.body = value
-      else
-        response.body
-      end
-    end
-
-    # Statuses
-
-    # whether or not the status is set to 2xx
-    def success?
-      status.between? 200, 299
-    end
-
-    # whether or not the status is set to 3xx
-    def redirect?
-      status.between? 300, 399
-    end
-
-    # whether or not the status is set to 4xx
-    def client_error?
-      status.between? 400, 499
-    end
-
-    # whether or not the status is set to 5xx
-    def server_error?
-      status.between? 500, 599
-    end
-
-    # whether or not the status is set to 404
-    def not_found?
-      status == 404
-    end
-
-    # Errors
-
-    def halt(*response)
-      response = response.first if response.length == 1
-      throw :halt, response
-    end
-
-    def error(code, body=nil)
-      code, body = 500, code.to_str if code.respond_to? :to_str
-      self.body(body) unless body.nil?
-      halt code
-    end
-
-    def not_found(body=nil)
-      error 404, body
+        returned = dispatch!(argument_resource)
+        response = self.class.returns_class.new(returned)
+        unless response.valid?
+          raise ResourceValidationError(response.errors)
+        end
+      }
+      response
     end
 
     # Implement
 
-    def invoke
+    def invoke(argument_resource)
+      raise NotImplementedError
     end
-
-    # Validation
-
-    alias_method :read_attribute_for_validation, :param
 
     protected
 
-    def validate!
-      raise ValidationError.new(errors) unless run_validations!
-    end
-
-    def run_validations!
-      run_filters :before_validation
-      run_extra_param_validations!
-      run_param_validations!
-      super
-    ensure
-      run_filters :after_validation
-    end
-
-    DEFAULT_PARAMS = %w{splat captures action controller}
-
-    def run_extra_param_validations!
-      (request.params.keys - DEFAULT_PARAMS).each do |param|
-        unless self.class.params.has_key?(param.to_sym)
-          errors.add(param, "Unexpected parameter, do not include #{param} in your request.")
-        end
+    def run_extra_param_validations!(params)
+      extras = params.reject{|param| self.accepts_class.params.has_key?(param.to_sym) }
+      if extras
+        raise ValidationError.new("Unexpected parameter(s), do not include any of '#{extras.join(', ')}' in your request.")
       end
     end
 
     # Calling
 
-    def dispatch!
+    def dispatch!(argument_resource)
       run_filters :before
-      invoke
+      invoke(argument_resource)
     ensure
       run_filters :after
     end
@@ -223,8 +130,8 @@ module Poncho
     def error_block(key)
       base = self.class
 
-      while base.respond_to?(:errors)
-        block = base.errors[key]
+      while base.respond_to?(:error_handlers)
+        block = base.error_handlers[key]
         return block if block
         base = base.superclass
       end
@@ -235,18 +142,10 @@ module Poncho
 
     def handle_exception!(error)
       # Exception raised in error handling
-      raise error if env['poncho.error']
+      raise error if @poncho_error
+      @poncho_error = error
 
-      env['poncho.error'] = error
-
-      status error.respond_to?(:code) ? Integer(error.code) : 500
-
-      if server_error? && request.logger
-        request.logger.error(
-          "#{error.class}: #{error}\n\t" +
-          error.backtrace.join("\n\t")
-        )
-      end
+      status = error.respond_to?(:code) ? Integer(error.code) : 500
 
       block   = error_block(error.class)
       block ||= error_block(status)
@@ -257,29 +156,14 @@ module Poncho
           instance_eval(&block)
         }
       else
-        raise error if server_error?
+        raise error
       end
     end
 
     def wrap
-      res = catch(:halt) { yield }
-      res = [res] if Fixnum === res or String === res
-      if Array === res and Fixnum === res.first
-        status(res.shift)
-        body(res.pop)
-        headers(*res)
-      elsif res.respond_to? :each
-        body res
-      end
+      yield
     rescue ::Exception => e
       handle_exception!(e)
-    end
-
-    def mime_type(type, value=nil)
-      return type if type.nil? || type.to_s.include?('/')
-      type = ".#{type}" unless type.to_s[0] == ?.
-      return Rack::Mime.mime_type(type, nil) unless value
-      Rack::Mime::MIME_TYPES[type] = value
     end
   end
 end

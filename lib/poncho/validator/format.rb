@@ -45,7 +45,7 @@ module Poncho
       end
     end
 
-    module HelperMethods
+    module Helpers
       # Validates whether the value of the specified attribute is of the correct form,
       # going by the regular expression provided. You can require that the attribute
       # matches the regular expression:

@@ -14,7 +14,7 @@ module Poncho
       end
     end
 
-    module HelperMethods
+    module Helpers
       def validates_param(*attr_names)
         options = attr_names.last.is_a?(::Hash) ? attr_names.pop : {}
         validates_with ParamValidator, options.merge(:attributes => attr_names)

@@ -17,17 +17,6 @@ module Poncho
         @params ||= {}
       end
 
-      def param(name, options = {})
-        type  =  options[:type]
-        type ||= options[:resource] ? :resource : :string
-
-        klass = param_for_type(type)
-        param = klass.new(name, options)
-        _params[param.name] = param
-
-        param
-      end
-
       # TODO: I suggest we deprecate these syntactic sugar methods for now
       # optiona/required/present might be better sugar anyway
       def string(name, options = {})
@@ -49,15 +38,6 @@ module Poncho
       end
 
     end
-
-    # TODO: Don't like the reference to param_before_type_cast here
-    def run_param_validations!
-      # Validate method parameters
-      self.class.params.each do |attr, param|
-        param.validate!(self, param_before_type_cast(attr))
-      end
-    end
-
   end
 end
 

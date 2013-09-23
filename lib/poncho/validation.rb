@@ -1,9 +1,4 @@
 module Poncho
-  def self.included(base)
-    base.extend ClassMethods
-    base.extend HelperMethods
-  end
-
   # == Poncho Validation
   #
   # Provides a full validation framework to your objects.
@@ -37,10 +32,15 @@ module Poncho
   # there is no need for you to do this manually.
   #
   module Validation
-    module HelperMethods
+    def self.included(base)
+      base.extend(Methods)
+      base.extend(Helpers)
     end
 
-    module ClassMethods
+    module Helpers
+    end
+
+    module Methods
 
       VALIDATES_DEFAULT_KEYS = [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
 
@@ -168,22 +168,16 @@ module Poncho
     # Runs all the specified validation and returns true if no errors were added
     # otherwise false. Context can optionally be supplied to define which callbacks
     # to test against.
-    def valid?(context = nil)
+    def valid?
       errors.clear
       run_validations!
-    end
-
-    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,
-    # false otherwise.
-    def invalid?
-      !valid?
     end
 
     alias :read_attribute_for_validation :send
 
     protected
 
-    def run_validations!
+    def run_validations
       self.class.validators.each do |validator|
         instance_eval(&validator)
       end

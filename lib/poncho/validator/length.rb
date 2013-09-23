@@ -61,7 +61,7 @@ module Poncho
       end
     end
 
-    module HelperMethods
+    module Helpers
       # Validates that the specified attribute matches the length restrictions supplied.
       # Only one option can be used at a time:
       #

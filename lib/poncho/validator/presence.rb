@@ -12,7 +12,7 @@ module Poncho
       end
     end
 
-    module HelperMethods
+    module Helpers
       # Validates that the specified attributes are not blank (as defined by
       # Object#blank?). Happens by default on save. Example:
       #

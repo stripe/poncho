@@ -40,7 +40,7 @@ module Poncho
       end
     end
 
-    module HelperMethods
+    module Helpers
       # Validates that the value of the specified attribute is not in a particular
       # enumerable object.
       #
