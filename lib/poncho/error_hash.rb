@@ -1,5 +1,5 @@
 module Poncho
-  class Errors
+  class ErrorDict
     attr_reader :messages
 
     def initialize(base)

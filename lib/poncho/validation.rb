@@ -1,12 +1,17 @@
 module Poncho
-  # == Poncho Validations
+  def self.included(base)
+    base.extend ClassMethods
+    base.extend HelperMethods
+  end
+
+  # == Poncho Validation
   #
   # Provides a full validation framework to your objects.
   #
   # A minimal implementation could be:
   #
   #   class Person
-  #     include Poncho::Validations
+  #     include Poncho::Validation
   #
   #     attr_accessor :first_name, :last_name
   #
@@ -27,11 +32,11 @@ module Poncho
   #   person.invalid?                 # => true
   #   person.errors                   # => #<OrderedHash {:first_name=>["starts with z."]}>
   #
-  # Note that <tt>Poncho::Validations</tt> automatically adds an +errors+ method
+  # Note that <tt>Poncho::Validation</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>Poncho::Errors</tt> object, so
   # there is no need for you to do this manually.
   #
-  module Validations
+  module Validation
     module HelperMethods
     end
 
@@ -42,7 +47,7 @@ module Poncho
       # Validates each attribute against a block.
       #
       #   class Person
-      #     include Poncho::Validations
+      #     include Poncho::Validation
       #
       #     attr_accessor :first_name, :last_name
       #
@@ -71,12 +76,12 @@ module Poncho
 
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
-      # you're looking for more descriptive declaration of your validations.
+      # you're looking for more descriptive declaration of your validation.
       #
       # This can be done with a symbol pointing to a method:
       #
       #   class Comment
-      #     include Poncho::Validations
+      #     include Poncho::Validation
       #
       #     validate :must_be_friends
       #
@@ -88,7 +93,7 @@ module Poncho
       # With a block which is passed with the current record to be validated:
       #
       #   class Comment
-      #     include Poncho::Validations
+      #     include Poncho::Validation
       #
       #     validate do |comment|
       #       comment.must_be_friends
@@ -102,7 +107,7 @@ module Poncho
       # Or with a block where self points to the current record to be validated:
       #
       #   class Comment
-      #     include Poncho::Validations
+      #     include Poncho::Validation
       #
       #     validate do
       #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
@@ -157,10 +162,10 @@ module Poncho
 
     # Returns the +Errors+ object that holds all information about attribute error messages.
     def errors
-      @errors ||= Errors.new(self)
+      @errors ||= ErrorHash.new(self)
     end
 
-    # Runs all the specified validations and returns true if no errors were added
+    # Runs all the specified validation and returns true if no errors were added
     # otherwise false. Context can optionally be supplied to define which callbacks
     # to test against.
     def valid?(context = nil)
@@ -186,24 +191,9 @@ module Poncho
       errors.empty?
     end
   end
-
-  module ClassValidations
-    include Validations
-
-    def self.included(base)
-      base.extend ClassMethods
-      base.extend HelperMethods
-    end
-  end
-
-  module InstanceValidations
-    include Validations
-    include Validations::ClassMethods
-    include Validations::HelperMethods
-  end
 end
 
-Dir[File.dirname(__FILE__) + '/validations/*.rb'].sort.each do |path|
+Dir[File.dirname(__FILE__) + '/validator/*.rb'].sort.each do |path|
   filename = File.basename(path)
-  require "poncho/validations/#{filename}"
+  require "poncho/validator/#{filename}"
 end

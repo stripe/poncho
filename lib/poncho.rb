@@ -7,12 +7,13 @@ module Poncho
   autoload :ServerError, 'poncho/error'
   autoload :ValidationError, 'poncho/error'
 
-  autoload :Errors, 'poncho/errors'
+  autoload :ErrorHash, 'poncho/error_hash'
+
   autoload :Filters, 'poncho/filters'
 
+  autoload :Validation, 'poncho/validation'
+
   autoload :Validator, 'poncho/validator'
-  autoload :InstanceValidations, 'poncho/validations'
-  autoload :ClassValidations, 'poncho/validations'
   autoload :EachValidator, 'poncho/validator'
   autoload :BlockValidator, 'poncho/validator'
 
