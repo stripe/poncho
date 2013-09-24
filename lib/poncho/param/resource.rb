@@ -1,6 +1,6 @@
 module Poncho
-  module Params
-    class ResourceParam < Param
+  module Param
+    class ResourceParam < BaseParam
       def initialize(name, options = {})
         super
 

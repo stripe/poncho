@@ -1,21 +1,21 @@
 module Poncho
   class Error < StandardError
-    self.attr_reader :error_type, :error_code
-
-    def self.type(type)
-      @error_type = type
+    def self.type(type=nil)
+      @type = type if type
+      @type
     end
 
-    def self.code(code)
-      @error_code = code
+    def self.code(code=nil)
+      @code = code if code
+      @code
     end
 
     def type
-      self.class.error_type
+      self.class.type
     end
 
     def code
-      self.class.error_code
+      self.class.code
     end
 
     def details
@@ -24,6 +24,10 @@ module Poncho
 
     def to_hash
       {:error => {:type => type, :message => message, :details => details}}
+    end
+
+    def to_s
+      message
     end
   end
 

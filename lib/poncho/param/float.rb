@@ -1,6 +1,6 @@
 module Poncho
-  module Params
-    class FloatParam < Param
+  module Param
+    class FloatParam < BaseParam
       def validate_each(record, attribute, value)
         unless convert(value).is_a?(Float)
           record.errors.add(attribute,

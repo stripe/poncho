@@ -4,12 +4,12 @@ module Poncho
 
     attr_reader :record
 
-    def self.param(name, options)
+    def self.param(name, options = {})
       name = name.to_sym
       type  =  options[:type]
       type ||= options[:resource] ? :resource : :string
 
-      klass = param_for_type(type)
+      klass = param_class_for_type(type)
       param = klass.new(name, options)
       _params[param.name] = param
 
@@ -26,6 +26,17 @@ module Poncho
 
     def self._params
       @_params ||= {}
+    end
+
+    def self.param_class_for_type(type)
+      return type if type.is_a?(Class)
+      name = type.to_s.split('_').map {|w| w.capitalize }.join
+      begin
+        Poncho::Param.const_get("#{name}Param")
+      rescue NameError => e
+        puts e
+        raise ArgumentError, "Unknown param: #{type}"
+      end
     end
 
     def initialize(record)
@@ -75,7 +86,7 @@ module Poncho
 
     def run_validations
       self.class.params.each do |attr, param|
-        param.validate(self, param_before_type_cast(attr))
+        param.validate_param(self, param_before_type_cast(attr))
       end
       super
     end

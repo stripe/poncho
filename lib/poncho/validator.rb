@@ -1,7 +1,7 @@
 module Poncho
   #
   #   class Person
-  #     include Poncho::Validations
+  #     include Poncho::Validation
   #     validates_with MyValidator
   #   end
   #
@@ -22,7 +22,7 @@ module Poncho
   # called <tt>validate</tt> which accepts a <tt>record</tt>.
   #
   #   class Person
-  #     include Poncho::Validations
+  #     include Poncho::Validation
   #     validates_with MyValidator
   #   end
   #
@@ -63,10 +63,10 @@ module Poncho
   #   end
   #
   # This can now be used in combination with the +validates+ method
-  # (see <tt>Poncho::Validations::ClassMethods.validates</tt> for more on this)
+  # (see <tt>Poncho::Validation::Methods.validates</tt> for more on this)
   #
   #   class Person
-  #     include Poncho::Validations
+  #     include Poncho::Validation
   #     attr_accessor :title
   #
   #     validates :title, :presence => true

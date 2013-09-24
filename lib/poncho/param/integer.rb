@@ -1,6 +1,6 @@
 module Poncho
-  module Params
-    class IntegerParam < Param
+  module Param
+    class IntegerParam < BaseParam
       def validate_each(record, attribute, value)
         converted = convert(value)
         unless converted && converted.is_a?(Integer)

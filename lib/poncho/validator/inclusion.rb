@@ -1,5 +1,5 @@
 module Poncho
-  module Validations
+  module Validation
     class InclusionValidator < EachValidator
       def check_validity!
         if options.key?(:in) && options.key?(:not_in)
@@ -31,7 +31,7 @@ module Poncho
         end
       end
 
-      def validate_inclusion(record, inclusions, value)
+      def validate_inclusion(inclusions, value)
         if inclusions.is_a?(Range) && !inclusions.cover?(value)
           "You supplied '#{value}' but the value must be in the range " +
             "#{inclusions.min} through #{inclusions.max}."
@@ -40,7 +40,7 @@ module Poncho
         end
       end
 
-      def validate_exclusion(record, exclusions, value)
+      def validate_exclusion(exclusions, value)
         if exclusions.is_a?(Range) && exclusions.cover?(value)
           "You supplied '#{value}' but the value cannot be in the range " +
             "#{exclusions.min} through #{exclusions.max}."

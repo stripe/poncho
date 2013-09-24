@@ -170,7 +170,7 @@ module Poncho
     # to test against.
     def valid?
       errors.clear
-      run_validations!
+      run_validations
     end
 
     alias :read_attribute_for_validation :send

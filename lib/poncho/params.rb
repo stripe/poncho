@@ -29,19 +29,7 @@ module Poncho
 
       private
 
-      def param_for_type(type)
-        return type if type.is_a?(Class)
-        name = type.to_s.split('_').map {|w| w.capitalize }.join
-        const_get("#{name}Param")
-      rescue NameError
-        raise ArgumentError, "Unknown param: #{type}"
-      end
 
     end
   end
-end
-
-Dir[File.dirname(__FILE__) + "/params/*.rb"].sort.each do |path|
-  filename = File.basename(path)
-  require "poncho/params/#{filename}"
 end

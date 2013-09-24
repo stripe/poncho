@@ -1,5 +1,5 @@
 module Poncho
-  module Validations
+  module Validation
     class FormatValidator < EachValidator
       def validate_each(record, attribute, value)
         if options[:with]

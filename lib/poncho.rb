@@ -19,3 +19,8 @@ module Poncho
   autoload :Resource, 'poncho/resource'
   autoload :Param, 'poncho/param'
 end
+
+Dir[File.dirname(__FILE__) + "/poncho/param/*.rb"].sort.each do |path|
+  filename = File.basename(path)
+  require "poncho/param/#{filename}"
+end

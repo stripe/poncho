@@ -1,5 +1,5 @@
 module Poncho
-  module Validations
+  module Validation
     class PresenceValidator < EachValidator
       def validate_each(record, attribute, value)
         if self.class.is_empty_value?(value)

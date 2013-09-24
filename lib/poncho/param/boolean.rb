@@ -1,6 +1,6 @@
 module Poncho
-  module Params
-    class BooleanParam < Param
+  module Param
+    class BooleanParam < BaseParam
       def validate_each(record, attribute, value)
         if convert(value).nil?
           record.errors.add(attribute, :expected => 'boolean (true or false)', :actual => value)

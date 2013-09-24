@@ -1,22 +1,6 @@
 module Poncho
   class Method
-    include ClassValidations
     include Filters
-    include Params
-
-    self.attr_reader :args_class, :returns_class
-
-    def self.call(params = {})
-      self.new(params).call
-    end
-
-    # Some magic so you can do one-line
-    # Sinatra routes. For example:
-    #   get '/charges', &ChargesListMethod
-    def self.to_proc
-      this = self
-      Proc.new { this.call(params) }
-    end
 
     def self._resource_class(resource_type, resource, block)
       if resource && block
@@ -29,7 +13,7 @@ module Poncho
 
       class_getter = "#{resource_type}_class".to_sym
       if superclass &&
-          superclass.respond_to?(class_getter_name) &&
+          superclass.respond_to?(class_getter) &&
           superclass.send(class_getter)
         if resource
           raise ArgumentError("Cannot pass a resource to `` if a superclass " +
@@ -48,12 +32,20 @@ module Poncho
       end
     end
 
-    def self.accepts(resource=nil, &block)
-      @accepts_class = _parameter_class(:accepts, resource, block)
+    def self.accepts(resource = nil, &block)
+      @accepts_class ||= _resource_class(:accepts, resource, block)
     end
 
-    def self.returns(resource, &block)
-      @returns_class = _parameter_class(:returns, resource, block)
+    def self.returns(resource = nil, &block)
+      @returns_class ||= _resource_class(:returns, resource, block)
+    end
+
+    def self.accepts_class
+      @accepts_class
+    end
+
+    def self.returns_class
+      @returns_class || Resource
     end
 
     # Filters
@@ -99,8 +91,9 @@ module Poncho
         unless response.valid?
           raise ResourceValidationError(response.errors)
         end
+
+        response
       }
-      response
     end
 
     # Implement
@@ -112,9 +105,9 @@ module Poncho
     protected
 
     def run_extra_param_validations!(params)
-      extras = params.reject{|param| self.accepts_class.params.has_key?(param.to_sym) }
-      if extras
-        raise ValidationError.new("Unexpected parameter(s), do not include any of '#{extras.join(', ')}' in your request.")
+      extras = params.keys.reject{|param| self.class.accepts_class.params.has_key?(param.to_sym) }
+      if extras.count > 0
+        raise ClientError.new("Unexpected parameter(s), do not include any of '#{extras.join(', ')}' in your request.")
       end
     end
 
