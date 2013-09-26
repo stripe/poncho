@@ -45,13 +45,14 @@ module Poncho::Handler
             response_resource = api_method.new(opts).call(method_params)
             code = 200
           rescue Poncho::Error => e
+            # TODO: Need a way to override error handling, e.g. to
+            # add custom logging for your application
             response_resource = Poncho::HttpErrorResource.new(e).clean!
             code = response_resource.code
           end
 
           body = serializer.dump(response_resource)
 
-          # TODO: serializer should know about content-type
           [code, {'Content-type' => serializer.content_type}, body]
         end
       end

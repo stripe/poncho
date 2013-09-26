@@ -20,10 +20,11 @@ class TestResource < Test
     returns do
       param :foo_id, :attribute => :id
       param :count, :type => :integer, :optional => true
+      param :opts, :type => :hash, :optional => true
     end
 
     def invoke(rsc)
-      return rsc
+      return { :id => rsc[:id], :count => rsc[:count], :opts => @options }
     end
 
     error Poncho::Error do
@@ -59,9 +60,9 @@ class TestResource < Test
   class TestApp < Sinatra::Base
     register Poncho::Handler::Sinatra
 
-    poncho Poncho::Serializer::JSON do
+    poncho(Poncho::Serializer::JSON) do
       get '/foo/:id', TestMethod
-      post '/foo', TestMethod
+      post '/foo', TestMethod, :im_a => 'teapot'
 
       put '/err', ErrorTestMethod
     end
@@ -82,25 +83,28 @@ class TestResource < Test
   def test_get_with_path_parameter
     res = verifying_status(200){get '/foo/bar'}
 
-    assert_equal(2, res.keys.count)
+    assert_equal(3, res.keys.count)
     assert_equal('bar', res['foo_id'])
     assert_equal(nil, res['count'])
+    assert_equal({}, res['opts'])
   end
 
   def test_get_with_query_parameter
     res = verifying_status(200){get '/foo/bar?count=5'}
 
-    assert_equal(2, res.keys.count)
+    assert_equal(3, res.keys.count)
     assert_equal('bar', res['foo_id'])
     assert_equal(5, res['count'])
+    assert_equal({}, res['opts'])
   end
 
   def test_post
     res = verifying_status(200){post '/foo', :id => 'bar'}
 
-    assert_equal(2, res.keys.count)
+    assert_equal(3, res.keys.count)
     assert_equal('bar', res['foo_id'])
     assert_equal(nil, res['count'])
+    assert_equal({'im_a' => 'teapot'}, res['opts'])
   end
 
   def test_serializes_validation_errors
