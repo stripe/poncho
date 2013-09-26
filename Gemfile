@@ -5,10 +5,11 @@ gemspec
 
 # For testing
 group :test do
-  gem 'rack'
+  gem 'rack-test'
   gem 'sinatra'
   gem 'thin'
   gem 'rake'
   gem 'mocha', '0.10.5'
   gem 'minitest', '3.2.0'
+  gem 'simplecov'
 end

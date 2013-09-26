@@ -9,11 +9,9 @@ module Poncho
         end
       end
 
-      def validate_each(record, attribute, value)
-        resource = convert(value)
-
-        unless resource.valid?
-          resource.errors.to_hash.each do |attr, messages|
+      def validate_value(converted, raw)
+        unless converted.clean
+          converted.errors.to_hash.each do |attr, messages|
             record.messages[:"#{attribute}[#{attr}]"] |= messages
          end
         end

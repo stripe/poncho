@@ -4,11 +4,13 @@ class TestMethod < Test
   def assert_valid(method_class, params)
     res = method_class.new.call(params)
     assert(res.kind_of?(Poncho::Resource))
+
     res
   end
 
   def assert_invalid(method_class, params)
-    assert_raises(Poncho::ValidationError){method_class.new.call(params)}
+    err = assert_raises(Poncho::ValidationError){method_class.new.call(params)}
+    assert_equal(:validation_error, err.type)
   end
 
   def test_param_validation
@@ -85,9 +87,9 @@ class TestMethod < Test
 
   def test_custom_param_validation
     custom_param = Class.new(Poncho::Param::BaseParam) do
-      def validate_each(record, name, value)
-        unless value.start_with?('U')
-          record.errors.add(name, :expected => "string beginning with 'U'", :actual => value)
+      def validate_value(converted, raw)
+        unless converted.start_with?('U')
+          { :expected => "string beginning with 'U'", :actual => raw }
         end
       end
     end

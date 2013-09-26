@@ -1,11 +1,12 @@
 module Poncho
   module Param
     class FloatParam < BaseParam
-      def validate_each(record, attribute, value)
-        unless convert(value).is_a?(Float)
-          record.errors.add(attribute,
+      def validate_value(converted, raw)
+        unless converted.is_a?(Float)
+          {
             :expected => "floating point number",
-            :actual => value.is_a?(String) ? value : value.class.name)
+            :actual => raw.is_a?(String) ? raw : raw.class.name
+          }
         end
       end
 
@@ -13,7 +14,7 @@ module Poncho
         if value.kind_of?(String) || value.kind_of?(Numeric)
           Float(value)
         else
-          value
+          nil
         end
       rescue TypeError, ArgumentError
         nil

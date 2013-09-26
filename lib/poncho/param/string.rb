@@ -1,9 +1,11 @@
 module Poncho
   module Param
     class StringParam < BaseParam
-      def validate_each(record, attribute, value)
-        unless value.is_a?(String)
-          record.errors.add(attribute, :expected => 'string', :actual => value.class.name)
+      def validate_value(converted, raw)
+        unless converted.kind_of?(String)
+          record.errors.add(attribute,
+            "Expected a String or a value that can be converted to a String " +
+            "but got a #{raw.class.name}")
         end
       end
 

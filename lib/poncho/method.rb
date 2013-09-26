@@ -73,27 +73,22 @@ module Poncho
 
     def initialize(options={})
       @options = options
-      wrap {
-      }
     end
 
     def call(params={})
-      wrap {
-        run_extra_param_validations!(params)
+      check_extra_params!(params)
 
-        argument_resource = self.class.accepts_class.new(params)
-        unless argument_resource.valid?
-          raise ValidationError.new(argument_resource.errors.to_s)
-        end
+      argument_resource = self.class.accepts_class.new(params)
+      argument_resource.clean!
 
-        returned = dispatch!(argument_resource)
-        response = self.class.returns_class.new(returned)
-        unless response.valid?
-          raise ResourceValidationError(response.errors)
-        end
+      returned = dispatch!(argument_resource)
+      return_resource = self.class.returns_class.new(returned)
 
-        response
-      }
+      unless return_resource.clean
+        raise InternalValidationError.new(return_resource.errors)
+      end
+
+      return_resource
     end
 
     # Implement
@@ -104,7 +99,7 @@ module Poncho
 
     protected
 
-    def run_extra_param_validations!(params)
+    def check_extra_params!(params)
       extras = params.keys.reject{|param| self.class.accepts_class.params.has_key?(param.to_sym) }
       if extras.count > 0
         raise ClientError.new("Unexpected parameter(s), do not include any of '#{extras.join(', ')}' in your request.")
@@ -131,32 +126,6 @@ module Poncho
 
       return false unless key.respond_to?(:superclass) && key.superclass < Exception
       error_block(key.superclass)
-    end
-
-    def handle_exception!(error)
-      # Exception raised in error handling
-      raise error if @poncho_error
-      @poncho_error = error
-
-      status = error.respond_to?(:code) ? Integer(error.code) : 500
-
-      block   = error_block(error.class)
-      block ||= error_block(status)
-      block ||= error_block(:base)
-
-      if block
-        wrap {
-          instance_eval(&block)
-        }
-      else
-        raise error
-      end
-    end
-
-    def wrap
-      yield
-    rescue ::Exception => e
-      handle_exception!(e)
     end
   end
 end

@@ -4,8 +4,6 @@ module Poncho
       include Validation::Methods
       include Validation::Helpers
 
-      VALIDATES_DEFAULT_KEYS = [:resource, :type, :optional, :format, :in, :not_in, :length, :message]
-
       def self.type
         @type ||= begin
                     full_name = name.split('::').last
@@ -26,13 +24,21 @@ module Poncho
         self.class.type
       end
 
-      def validate_param(record, raw_value)
-        if Poncho::Validation::PresenceValidator.is_empty_value?(raw_value)
+      def attribute
+        @options[:attribute] || @name
+      end
+
+      def validate_param(record, converted, raw)
+        if Poncho::Validation::PresenceValidator.is_empty_value?(raw)
           # TODO: should this just be validated here as opposed to in a validator?
           @presence_validator.validate(record) unless @presence_validator.nil?
         else
-          validate_each(record, @name, raw_value) # Param-specific validation
-          validators.each{|v| v.call(record) }
+          err = validate_value(converted, raw) # Param-specific validation
+          if err
+            record.errors.add(@name, err)
+          else
+            validators.each{|v| v.call(record) }
+          end
         end
       end
 
@@ -40,16 +46,15 @@ module Poncho
         value
       end
 
-      # TODO: This should be renamed
-      def validate_each(record, attribute, value); end
+      def validate_value(converted, raw); end
 
       def create_validations
-        unless @options.delete(:optional)
+        unless @options[:optional]
           @presence_validator = Poncho::Validation::PresenceValidator.new(
             :attributes => [@name])
         end
 
-        if (format = @options.delete(:format))
+        if @options[:format]
           validates_format_of(@name, :with => @options[:format], :message => @options[:message])
         end
 
@@ -73,18 +78,8 @@ module Poncho
           validates_length_of(@name, length_options)
         end
 
-        validators = @options.reject {|key, _| VALIDATES_DEFAULT_KEYS.include?(key) }
-        validators.each do |v, opts|
-          case opts
-          when false
-            return
-          when true
-            opts = {}
-          when Symbol
-            opts = {opts => true}
-          end
-
-          validates(@name, v, opts)
+        if @options[:validate_with]
+          validates_with(@options[:validate_with], :attributes => [@name])
         end
       end
     end
