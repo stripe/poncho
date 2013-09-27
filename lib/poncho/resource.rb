@@ -2,6 +2,9 @@ module Poncho
   class Resource
     include Validation
 
+    # TODO: Should we explicitly validate the list of options passed?
+    # TODO: Should the second argument be a required type instead of making
+    # type part of the options and defaulting to string?
     def self.param(name, options = {})
       name = name.to_sym
       type  =  options[:type]

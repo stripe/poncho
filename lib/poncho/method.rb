@@ -71,6 +71,9 @@ module Poncho
       include(*extensions) if extensions.any?
     end
 
+    # TODO: Do we really want to support options here?
+    # it's a little like a method having two different
+    # sets of arguments.  Also, YAGNI.
     def initialize(options={})
       @options = options
     end
