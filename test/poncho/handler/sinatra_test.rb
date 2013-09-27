@@ -59,8 +59,9 @@ class TestResource < Test
 
   class TestApp < Sinatra::Base
     register Poncho::Handler::Sinatra
+    set :poncho_serializer, Poncho::Serializer::JSON
 
-    poncho(Poncho::Serializer::JSON) do
+    poncho do
       get '/foo/:id', TestMethod
       post '/foo', TestMethod, :im_a => 'teapot'
 
