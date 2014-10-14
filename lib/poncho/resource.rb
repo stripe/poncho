@@ -10,7 +10,7 @@ module Poncho
         raise ResourceValidationError, 'Invalid nil record'
       end
 
-      @record = record
+      @record = record.is_a?(Hash) ? record.symbolize_keys : record
     end
 
     # Params
@@ -22,7 +22,12 @@ module Poncho
     end
 
     def param_before_type_cast(name)
-      record.send(name) if record.respond_to?(name)
+      case record
+      when Hash
+        record[name]
+      else
+        record.send(name) if record.respond_to?(name)
+      end
     end
 
     alias_method :param?, :respond_to?

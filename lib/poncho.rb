@@ -1,5 +1,7 @@
 require 'poncho/version'
 
+require 'extensions/hash'
+
 module Poncho
   autoload :Error, 'poncho/error'
   autoload :ResourceValidationError, 'poncho/error'

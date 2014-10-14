@@ -14,7 +14,7 @@ module Poncho
 
         unless resource.valid?
           resource.errors.to_hash.each do |attr, messages|
-            record.messages[:"#{attribute}[#{attr}]"] |= messages
+            record.errors.set(:"#{attribute}[#{attr}]", messages)
          end
         end
       end
