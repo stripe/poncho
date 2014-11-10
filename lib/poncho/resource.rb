@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module Poncho
   class Resource
     include Params
@@ -9,8 +11,7 @@ module Poncho
       if record.nil?
         raise ResourceValidationError, 'Invalid nil record'
       end
-
-      @record = record.is_a?(Hash) ? record.symbolize_keys : record
+      @record = record.is_a?(Hash) ? OpenStruct.new(record) : record
     end
 
     # Params
@@ -22,12 +23,7 @@ module Poncho
     end
 
     def param_before_type_cast(name)
-      case record
-      when Hash
-        record[name]
-      else
-        record.send(name) if record.respond_to?(name)
-      end
+      record.send(name) if record.respond_to?(name)
     end
 
     alias_method :param?, :respond_to?
@@ -78,7 +74,6 @@ module Poncho
       if self.class.params.keys.include?(method_symbol)
         return param(method_symbol)
       end
-
       super
     end
   end
