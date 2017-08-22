@@ -260,8 +260,8 @@ module Poncho
 
     def wrap
       res = catch(:halt) { yield }
-      res = [res] if Fixnum === res or String === res
-      if Array === res and Fixnum === res.first
+      res = [res] if Integer === res or String === res
+      if Array === res and Integer === res.first
         status(res.shift)
         body(res.pop)
         headers(*res)
