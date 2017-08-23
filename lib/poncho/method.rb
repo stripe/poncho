@@ -238,7 +238,7 @@ module Poncho
 
       status error.respond_to?(:code) ? Integer(error.code) : 500
 
-      if server_error?
+      if server_error? && !request.logger.nil?
         request.logger.error(
           "#{error.class}: #{error}\n\t" +
           error.backtrace.join("\n\t")
