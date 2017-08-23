@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module Poncho
   class Resource
     include Params
@@ -9,8 +11,7 @@ module Poncho
       if record.nil?
         raise ResourceValidationError, 'Invalid nil record'
       end
-
-      @record = record
+      @record = record.is_a?(Hash) ? OpenStruct.new(record) : record
     end
 
     # Params
@@ -73,7 +74,6 @@ module Poncho
       if self.class.params.keys.include?(method_symbol)
         return param(method_symbol)
       end
-
       super
     end
   end
